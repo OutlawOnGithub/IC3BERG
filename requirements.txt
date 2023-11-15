@@ -2,3 +2,4 @@ discord
 rss
 feedparser
 requests
+asyncio
