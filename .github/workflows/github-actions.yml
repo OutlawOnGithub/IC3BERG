@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo "Building IC3BERG docker image as latest"
-      - run: docker build --no-cache --build-arg DISCORD_TOKEN=$DISCORD_TOKEN -t outlaw/ic3berg:latest.
+      - run: docker build --no-cache --build-arg DISCORD_TOKEN=$DISCORD_TOKEN -t outlaw/ic3berg:latest .
       - run: echo "Tag IC3BERG docker image using version ${{ github.ref }}"
       - run: docker tag outlaw/ic3berg:${{ github.ref }} .
 
