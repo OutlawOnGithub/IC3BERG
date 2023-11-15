@@ -10,7 +10,7 @@ def main():
     intents.messages = True
     intents.guilds = True
     intents.reactions = True
-    bot = commands.Bot(command_prefix='!', intents=intents)
+    bot = commands.Bot(command_prefix='_', intents=intents)
 
     rss = RSS()
 
