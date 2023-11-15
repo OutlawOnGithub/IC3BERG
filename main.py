@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 import os
 import json
 from rss import *
-def main():
+def main(): 
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     intents = discord.Intents.all()
