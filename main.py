@@ -3,10 +3,9 @@ from discord.ext import commands, tasks
 import os
 from rss import *
 import asyncio
-from dotenv import load_dotenv
 
-def main():
-    load_dotenv()
+def main(): 
+
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     intents = discord.Intents.all()
