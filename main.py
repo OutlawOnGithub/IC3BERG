@@ -27,28 +27,28 @@ def main():
     async def on_ready():
         print(f'We have logged in as {bot.user}')
 
-    @tasks.loop(minutes = 5) # repeat after every 5 minutes
+    @tasks.loop(seconds = 20) # repeat after every 5 minutes
     async def fetch_feeds():
-        news_feed = feedparser.parse('http://www.bleepingcomputer.com/feed/')
-        print(news_feed.entries[0])
-        # if latest_id != news_feed.entries[0]['id']: #test si c'est nouveau 
-        embed = discord.Embed(
-            title=news_feed.entries[0]['title'],
-            url=news_feed.entries[0]['link'],
-            description=news_feed.entries[0]['summary'],
-            color=discord.Color.blue()
-        )
-        embed.set_author(name=news_feed.entries[0]['author'])
-        embed.set_footer(text=f"{datetime.datetime.utcnow()}")
-        
-        latest_id = news_feed.entries[0]['id']
-        for guild in bot.guilds:
-            channel = discord.utils.get(guild.channels, name='infosec', type=discord.ChannelType.text)
-            if channel:
-                print(news_feed.entries[0])
-                await channel.send(embed=embed)
-        # else:
-        #     print('fetched already')
+        for feed in feed_urls:
+            news_feed = feedparser.parse(feed)
+            # if latest_id != news_feed.entries[0]['id']: #test si c'est nouveau 
+            embed = discord.Embed(
+                title=news_feed.entries[0]['title'],
+                url=news_feed.entries[0]['link'],
+                description=news_feed.entries[0]['summary'],
+                color=discord.Color.blue()
+            )
+            embed.set_author(name=news_feed.entries[0]['author'])
+            embed.set_footer(text=f"{datetime.datetime.utcnow()}")
+            
+            latest_id = news_feed.entries[0]['id']
+            for guild in bot.guilds:
+                channel = discord.utils.get(guild.channels, name='infosec', type=discord.ChannelType.text)
+                if channel:
+                    print('sent shit')
+                    await channel.send(embed=embed)
+                else:
+                    print('fetched already')
 
     @bot.command(name='startfeeds')
     async def start_feeds(ctx):
