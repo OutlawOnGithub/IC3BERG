@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - dev
 jobs:
   Build-Image:
     runs-on: self-hosted
@@ -19,4 +20,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo "Restart IC3BERG container"
-      - run: docker compose up -d --force-recreate
+      - run: docker compose up -d
