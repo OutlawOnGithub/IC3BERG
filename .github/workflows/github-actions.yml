@@ -1,0 +1,16 @@
+name: IC3BERG pipeline on tags
+on: [tag]
+jobs:
+  Build-Image:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Building IC3BERG docker image as latest"
+      - run: docker build --build-arg DISCORD_TOKEN=$DISCORD_TOKEN -t outlaw/ic3berg:latest.
+      - run: echo "Tag IC3BERG docker image using version ${{ github.ref }}"
+      - run: docker tag outlaw/ic3berg:${{ github.ref }} .
+
+  Deploy:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Restart IC3BERG container"
+      - run: docker compose up -d --force-recreate
