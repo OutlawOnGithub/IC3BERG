@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  ic3berg:
+    image: outlaw/ic3berg:latest
+    container_name: ic3berg
+    networks:
+      - ic3berg
+
+networks:
+  ic3berg:
+    name: ic3berg

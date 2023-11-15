@@ -4,7 +4,7 @@ import os
 import json
 from rss import *
 def main():
-    TOKEN = 'MTE3MzY4MzQwMzUzOTg4MjEwNg.GMUCfQ.qj-Dg5gQTSqZms90nS1NPWK1xBsIWHRxtMozgM'
+    TOKEN = os.getenv("DISCORD_TOKEN")
 
     intents = discord.Intents.all()
     intents.messages = True
