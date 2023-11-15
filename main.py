@@ -1,50 +1,72 @@
 import discord
 from discord.ext import commands, tasks
 import os
-import json
 from rss import *
+import asyncio
+
 def main(): 
+
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     intents = discord.Intents.all()
     intents.messages = True
     intents.guilds = True
     intents.reactions = True
-    bot = commands.Bot(command_prefix='!', intents=intents)
+    bot = commands.Bot(command_prefix='_', intents=intents)
 
     rss = RSS()
 
-    feed_urls = ['http://www.bleepingcomputer.com/feed/']
+    feed_dict = {
+        'https://krebsonsecurity.com/feed/' : '',
+        'http://www.bleepingcomputer.com/feed/' : '',
+    }
 
     channel_name = 'infosec'
-    previous_entry_id_per_server = {}
     fetching_status_per_server = {}
 
     @bot.event
     async def on_ready():
         print(f'We have logged in as {bot.user}')
 
-    @tasks.loop(minutes = 5) # repeat after every 5 minutes
+    @tasks.loop(seconds = 20) # repeat after every 5 minutes
     async def fetch_feeds():
-        feeds_list = ['https://krebsonsecurity.com/feed/','http://www.bleepingcomputer.com/feed/']
-        for guild in bot.guilds:
-            channel = discord.utils.get(guild.channels, name='infosec', type=discord.ChannelType.text)
-            if channel:
-                news_feed = feedparser.parse('http://www.bleepingcomputer.com/feed/')
-                print(news_feed.entries[0])
-                embed = rss.fetch_a_feed(news_feed)
-                if embed:
-                    await channel.send(embed=embed)
-                else:
-                    print('fetched already')
+        print(feed_dict)
+        for feed_url in feed_dict.keys():
+
+            news_feed = feedparser.parse(feed_url)
+            if feed_dict[feed_url] != news_feed.entries[0]['id']: #test si c'est nouveau 
+                embed = discord.Embed(
+                    title=news_feed.entries[0]['title'],
+                    url=news_feed.entries[0]['link'],
+                    description=news_feed.entries[0]['summary'],
+                    color=discord.Color.blue()
+                )
+                embed.set_author(name=news_feed.entries[0]['author'])
+                embed.set_footer(text=f"{datetime.datetime.utcnow()}")
+                
+                for guild in bot.guilds:
+                    channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
+                    if channel:
+                        await channel.send(embed=embed)
+                    else:
+                        print('fetched already')
+            feed_dict[feed_url] = news_feed.entries[0]['id']
+            print(feed_dict)
 
     @bot.command(name='startfeeds')
     async def start_feeds(ctx):
         guild_id = ctx.guild.id
         fetching_status_per_server[guild_id] = True
-        fetch_feeds.start()
-        print(f"Fetching started for server {ctx.guild.name}...")
-        await ctx.send('RSS feed updates will now be fetched every 30 minutes.')
+        if fetch_feeds.is_running():
+            print('alreasdy running')
+            fetch_feeds.cancel()
+            asyncio.sleep(3)
+            fetch_feeds.start()
+        else:
+
+            fetch_feeds.start()
+        print(f"Fetching started for all servers")#server {ctx.guild.name}...")
+        await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
 
     @bot.command(name='stopfeeds')
     async def stop_feeds(ctx):
@@ -63,14 +85,7 @@ def main():
         else:
             await ctx.send(f'The bot is currently not fetching RSS feed updates in `{ctx.guild.name}`.')
 
-    # keep_alive()
     bot.run(TOKEN)
-    # try:
-    #     bot.run(TOKEN)
-    # except discord.errors.HTTPException:
-    #     print("\n\n\nBLOCKED BY RATE LIMITS\nRESTARTING NOW\n\n\n")
-    #     os.system('kill 1')
-    #     os.system("keep_alive.py")
 
 if __name__ == "__main__":
     main()
