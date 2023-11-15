@@ -23,7 +23,6 @@ def main():
     }
 
     channel_name = 'infosec'
-    previous_entry_id_per_server = {}
     fetching_status_per_server = {}
 
     @bot.event
@@ -47,7 +46,7 @@ def main():
                 embed.set_footer(text=f"{datetime.datetime.utcnow()}")
                 
                 for guild in bot.guilds:
-                    channel = discord.utils.get(guild.channels, name='infosec', type=discord.ChannelType.text)
+                    channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
                     if channel:
                         await channel.send(embed=embed)
                     else:
