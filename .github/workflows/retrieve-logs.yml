@@ -1,0 +1,8 @@
+name: Retrieve IC3BERG logs
+on: workflow_dispatch
+jobs:
+  retrieve-log:
+    runs-on: self-hosted
+    steps:
+      - run: echo "Retrieving logs from IC3BERG containers"
+      - run: docker logs -t --since 1h ic3berg
