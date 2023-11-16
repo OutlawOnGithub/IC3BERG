@@ -1,5 +1,8 @@
 name: Retrieve IC3BERG logs
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - logs
 jobs:
   retrieve-log:
     runs-on: self-hosted
