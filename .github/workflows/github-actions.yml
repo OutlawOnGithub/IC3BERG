@@ -18,5 +18,7 @@ jobs:
     needs: Build-Image
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Restart IC3BERG container"
+      - run: echo "Parsing mariadb secret in .env"
+      - run: echo "MARIADB_PASSWORD="${{ secrets.MARIADB_PASSWORD }} >> .env
+      - run: echo "Restart IC3BERG container's stack"
       - run: docker compose up -d
