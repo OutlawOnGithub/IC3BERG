@@ -1,0 +1,15 @@
+CREATE DATA IF NOT EXISTS iceberg;
+
+USER iceberg;
+
+CREATE TABLE IF NOT EXISTS server (
+    guild_id INT PRIMARY KEY,
+    activate BOOL,
+);
+
+CREATE TABLE IF NOT EXISTS  rss (
+    guild_id INT,
+    url TEXT,
+    name TEXT,
+    addedBy TIMESTAMP
+);
