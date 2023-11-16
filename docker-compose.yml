@@ -6,6 +6,18 @@ services:
     container_name: ic3berg
     networks:
       - ic3berg
+  
+  database:
+    image: mariadb:lts-jammy
+    container_name: db
+    environment:
+      MARIADB_USER: outlaw
+      MARIADB_PASSWORD: <mariadb_password>
+      MARIADB_PASSWORD_ROOT: <mariadb_password>
+    volumes:
+      - /home/outlaw/db:/var/lib/mysql
+    networks:
+      - ic3berg
 
 networks:
   ic3berg:
