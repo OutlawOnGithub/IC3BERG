@@ -1,8 +1,8 @@
 # IC3BERG
 IC3BERG is cybersecurity oriented discord bot.
 
-## Uses
-### Install for developement
+## Usage
+### For developement
 As the project was mainly done on ubuntu, we will only cover it for the tutorial.
 
 First of all install python and pip: \
@@ -26,6 +26,14 @@ And done ! you can just start the bot using :
 ```
 python main.py
 ```
+
+### For docker
+For docker usage, it will be as simple as building the image while specifying you discord bot token as an build arg:
+```
+docker build --build-arg DISCORD_TOKEN=my-token -t my-discord-bot .
+```
+
+Now you can start the stack using the `docker-compose.yml` (it will start a mariadb necessary for the bot)
 
 ## License
 This source code is publish under the [MIT license](LICENSE.md)
