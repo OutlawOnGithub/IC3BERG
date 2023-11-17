@@ -27,6 +27,9 @@ And done ! you can just start the bot using :
 python main.py
 ```
 
+## License
+This source code is publish under the [MIT license](LICENSE.md)
+
 ## Contributor
 - [Outlaw](https://github.com/OutlawOnGithub) as Lead Dev
 - [Firzam](https://github.com/Firzam) as DevOps
