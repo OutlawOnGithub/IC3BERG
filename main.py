@@ -28,9 +28,9 @@ def main():
     async def on_ready():
         print(f'We have logged in as {bot.user}')
 
-    @tasks.loop(seconds = 20) # repeat after every 5 minutes
+    @tasks.loop(minutes = 5) # repeat after every 5 minutes
     async def fetch_feeds():
-        print(feed_dict)
+        #print(feed_dict)
         for feed_url in feed_dict.keys():
 
             news_feed = feedparser.parse(feed_url)
@@ -51,39 +51,41 @@ def main():
                     else:
                         print('fetched already')
             feed_dict[feed_url] = news_feed.entries[0]['id']
-            print(feed_dict)
 
     @bot.command(name='startfeeds')
     async def start_feeds(ctx):
         guild_id = ctx.guild.id
         fetching_status_per_server[guild_id] = True
-        if fetch_feeds.is_running():
-            print('alreasdy running')
-            fetch_feeds.cancel()
-            asyncio.sleep(3)
+        if not fetch_feeds.is_running():
             fetch_feeds.start()
+            print(f"Fetching started for all servers")#server {ctx.guild.name}...")
+            await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
         else:
-
-            fetch_feeds.start()
-        print(f"Fetching started for all servers")#server {ctx.guild.name}...")
-        await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+            await ctx.send('RSS feed updates are already being fetched.')
 
     @bot.command(name='stopfeeds')
     async def stop_feeds(ctx):
         guild_id = ctx.guild.id
-        fetching_status_per_server[guild_id] = False
-        print(f"Fetching stopped for server {ctx.guild.name}.")
-        await ctx.send('RSS feed updates fetching has been stopped.')
+        if fetch_feeds.is_running():
+            fetching_status_per_server[guild_id] = False
+            print(f"Fetching stopped for all servers.")
+            fetch_feeds.cancel()
+            await ctx.send('RSS feed updates fetching has been stopped.')
+        else:
+            fetch_feeds.cancel()
+            await ctx.send('The bot is not currently fetching.')
 
     @bot.command(name='status')
     async def status(ctx):
-        guild_id = ctx.guild.id
-        status = fetching_status_per_server.get(guild_id, False)
+        #guild_id = ctx.guild.id
+        status = fetch_feeds.is_running()
 
         if status:
-            await ctx.send(f'The bot is currently fetching RSS feed updates in {ctx.guild.name}.')
+            print("Status : Fetching")
+            await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
         else:
-            await ctx.send(f'The bot is currently not fetching RSS feed updates in `{ctx.guild.name}`.')
+            print("Status : Not fetching")
+            await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
 
     bot.run(TOKEN)
 
