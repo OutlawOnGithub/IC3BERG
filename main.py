@@ -113,7 +113,7 @@ def main():
                 )
         embed.add_field(name='_startrss', value='Starts fetching the saved RSS flux', inline=False)
         embed.add_field(name='_stoprss', value='Stops fetching and sending the news', inline=False)
-        embed.add_field(name='_addrss <feed_url>', value='Stop fetching and sending the news', inline=False)
+        embed.add_field(name='_addrss <feed_url>', value='Adds a new RSS flux to fetch', inline=False)
         embed.add_field(name='_status', value='Displays if the bot is currently fetching the news or not', inline=False)
         embed.add_field(name='_info', value='Displays information about the makers of this bot', inline=False)
         embed.add_field(name='_help', value='Displays this help message', inline=False)
