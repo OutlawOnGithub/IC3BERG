@@ -13,11 +13,10 @@ def main():
     intents.messages = True
     intents.guilds = True
     intents.reactions = True
-    bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+    bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
 
     feed_dict = {
         'https://krebsonsecurity.com/feed/' : '',
-        'http://www.bleepingcomputer.com/feed/' : '',
         'https://blog.google/threat-analysis-group/rss/' : '',
     }
 
