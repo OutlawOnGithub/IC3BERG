@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import os
 from rss import *
+from datetime import timezone, datetime
 import asyncio
 
 def main(): 
@@ -12,13 +13,12 @@ def main():
     intents.messages = True
     intents.guilds = True
     intents.reactions = True
-    bot = commands.Bot(command_prefix='_', intents=intents)
-
-    rss = RSS()
+    bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
     feed_dict = {
         'https://krebsonsecurity.com/feed/' : '',
         'http://www.bleepingcomputer.com/feed/' : '',
+        'https://blog.google/threat-analysis-group/rss/' : '',
     }
 
     channel_name = 'infosec'
@@ -38,11 +38,15 @@ def main():
                 embed = discord.Embed(
                     title=news_feed.entries[0]['title'],
                     url=news_feed.entries[0]['link'],
-                    description=news_feed.entries[0]['summary'],
+                    description=news_feed.entries[0]['description'],
                     color=discord.Color.blue()
                 )
+                if 'img' in news_feed.entries[0]:
+                    embed.set_image(url=news_feed.entries[0]['img']['url'])
                 embed.set_author(name=news_feed.entries[0]['author'])
-                embed.set_footer(text=f"{datetime.datetime.utcnow()}")
+                current_time_gmt = datetime.now(timezone.utc)
+                formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
+                embed.set_footer(text=f"{formatted_time}")
                 
                 for guild in bot.guilds:
                     channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
@@ -52,7 +56,8 @@ def main():
                         print('fetched already')
             feed_dict[feed_url] = news_feed.entries[0]['id']
 
-    @bot.command(name='startfeeds')
+
+    @bot.command(name='startrss')
     async def start_feeds(ctx):
         guild_id = ctx.guild.id
         fetching_status_per_server[guild_id] = True
@@ -63,7 +68,8 @@ def main():
         else:
             await ctx.send('RSS feed updates are already being fetched.')
 
-    @bot.command(name='stopfeeds')
+
+    @bot.command(name='stoprss')
     async def stop_feeds(ctx):
         guild_id = ctx.guild.id
         if fetch_feeds.is_running():
@@ -74,6 +80,17 @@ def main():
         else:
             fetch_feeds.cancel()
             await ctx.send('The bot is not currently fetching.')
+
+
+    @bot.command(name='addrss')
+    async def add_feed(ctx, feed_url=''):
+        if feed_url:
+            print(f"Added feed : {feed_url}")
+            feed_dict[feed_url] = ''
+            await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
+        else:
+            await ctx.send(f'A feed url is required')
+      
 
     @bot.command(name='status')
     async def status(ctx):
@@ -86,6 +103,38 @@ def main():
         else:
             print("Status : Not fetching")
             await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
+
+
+    @bot.command(name='help')
+    async def help(ctx):
+        embed = discord.Embed(
+                    title="Command list",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.blue()
+                )
+        embed.add_field(name='_startrss', value='Starts fetching the saved RSS flux', inline=False)
+        embed.add_field(name='_stoprss', value='Stops fetching and sending the news', inline=False)
+        embed.add_field(name='_addrss <feed_url>', value='Stop fetching and sending the news', inline=False)
+        embed.add_field(name='_status', value='Displays if the bot is currently fetching the news or not', inline=False)
+        embed.add_field(name='_info', value='Displays information about the makers of this bot', inline=False)
+        embed.add_field(name='_help', value='Displays this help message', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+
+    @bot.command(name='info')
+    async def help(ctx):
+        embed = discord.Embed(
+                    title="Informations about IC3BERG",
+                    url="https://github.com/OutlawOnGithub/IC3BERG/",
+                    description="""This bot is a personal project by two IT students, Outlaw and Ayerman/Firzam.
+                                   It is currently in development and will, in the future, include numerous functionalities related to cybersecurity.
+                                   The project will be opensourced on Github once we deploy the v1.0.0""",
+                    color=discord.Color.blue()
+                )
+        await ctx.send(embed=embed)
+
 
     bot.run(TOKEN)
 
