@@ -8,4 +8,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - run: echo "Retrieving logs from IC3BERG containers"
-      - run: docker logs -t --since 1h ic3berg
+      - run: docker logs -t --since 1h ic3berg &> output.logs
+      - uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: output.logs
