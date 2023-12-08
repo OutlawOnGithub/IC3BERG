@@ -17,7 +17,7 @@ def main():
 
     feed_dict = {
         'https://krebsonsecurity.com/feed/' : '',
-        'https://blog.google/threat-analysis-group/rss/' : '',
+        'http://www.bleepingcomputer.com/feed/' : '',
     }
 
     channel_name = 'infosec'
