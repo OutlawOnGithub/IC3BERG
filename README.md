@@ -1,5 +1,5 @@
 # IC3BERG
-IC3BERG is cybersecurity oriented discord bot.
+IC3BERG is a cybersecurity oriented discord bot.
 
 ## Usage
 ### For developement
