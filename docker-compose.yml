@@ -16,6 +16,7 @@ services:
       MARIADB_PASSWORD_ROOT: <mariadb_password>
     volumes:
       - /home/outlaw/db:/var/lib/mysql
+      # - init.db:/docker-entrypoint-initdb.d
     networks:
       - ic3berg
 
