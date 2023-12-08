@@ -123,7 +123,7 @@ def main():
 
 
     @bot.command(name='info')
-    async def help(ctx):
+    async def info(ctx):
         embed = discord.Embed(
                     title="Informations about IC3BERG",
                     url="https://github.com/OutlawOnGithub/IC3BERG/",
