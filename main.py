@@ -40,8 +40,8 @@ def main():
                     description=news_feed.entries[0]['description'],
                     color=discord.Color.blue()
                 )
-                if 'img' in news_feed.entries[0]:
-                    embed.set_image(url=news_feed.entries[0]['img']['url'])
+                # if 'img' in news_feed.entries[0]:
+                #     embed.set_image(url=news_feed.entries[0]['img']['url'])
                 embed.set_author(name=news_feed.entries[0]['author'])
                 current_time_gmt = datetime.now(timezone.utc)
                 formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
