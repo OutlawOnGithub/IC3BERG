@@ -61,9 +61,10 @@ def main():
         guild_id = ctx.guild.id
         fetching_status_per_server[guild_id] = True
         if not fetch_feeds.is_running():
-            fetch_feeds.start()
-            print(f"Fetching started for all servers")#server {ctx.guild.name}...")
-            await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+            #fetch_feeds.start()
+            #print(f"Fetching started for all servers")#server {ctx.guild.name}...")
+            #await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+            await ctx.send('RSS feeds are disabled until we fix the lag issue')
         else:
             await ctx.send('RSS feed updates are already being fetched.')
 
@@ -75,7 +76,8 @@ def main():
             fetching_status_per_server[guild_id] = False
             print(f"Fetching stopped for all servers.")
             fetch_feeds.cancel()
-            await ctx.send('RSS feed updates fetching has been stopped.')
+            #await ctx.send('RSS feed updates fetching has been stopped.')
+            await ctx.send('RSS feeds are disabled until we fix the lag issue')
         else:
             fetch_feeds.cancel()
             await ctx.send('The bot is not currently fetching.')
@@ -94,9 +96,7 @@ def main():
     @bot.command(name='status')
     async def status(ctx):
         #guild_id = ctx.guild.id
-        status = fetch_feeds.is_running()
-
-        if status:
+        if fetch_feeds.is_running():
             print("Status : Fetching")
             await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
         else:
