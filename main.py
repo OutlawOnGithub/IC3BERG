@@ -4,6 +4,7 @@ import os
 from rss import *
 from datetime import timezone, datetime
 import asyncio
+import logging
 
 def main(): 
 
@@ -22,6 +23,8 @@ def main():
 
     channel_name = 'infosec'
     fetching_status_per_server = {}
+
+    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
     @bot.event
     async def on_ready():
@@ -149,7 +152,7 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", )
+    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_handler=handler, log_level=logging.DEBUG)
 
 if __name__ == "__main__":
     main()
