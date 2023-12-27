@@ -4,6 +4,7 @@ import os
 from rss import *
 from datetime import timezone, datetime
 import asyncio
+import logging
 
 def main(): 
 
@@ -19,6 +20,8 @@ def main():
         'https://krebsonsecurity.com/feed/' : '',
         'http://www.bleepingcomputer.com/feed/' : '',
     }
+
+    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
     channel_name = 'infosec'
     fetching_status_per_server = {}
@@ -141,7 +144,7 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run(TOKEN)
+    bot.run(TOKEN, log_handler=handler, log_level=logging.DEBUG)
 
 if __name__ == "__main__":
     main()
