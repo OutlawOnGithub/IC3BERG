@@ -30,7 +30,8 @@ def main():
     @tasks.loop(minutes = 5) # repeat after every 5 minutes
     async def fetch_feeds():
         #print(feed_dict)
-        print(f"I am fetching !")
+        current_time = datetime.now().strftime("%H:%M:%S")
+        print(f"{current_time} - I am fetching !")
         for feed_url in feed_dict.keys():
 
             news_feed = feedparser.parse(feed_url)
@@ -65,7 +66,8 @@ def main():
             #fetch_feeds.start()
             #print(f"Fetching started for all servers")#server {ctx.guild.name}...")
             #await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
-            print(f"Fetching - Started - {ctx.guild}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time} - Fetching - Started - {ctx.guild}")
             await ctx.send('RSS feeds are disabled until we fix the lag issue')
         else:
             await ctx.send('RSS feed updates are already being fetched.')
@@ -76,7 +78,8 @@ def main():
         guild_id = ctx.guild.id
         if fetch_feeds.is_running():
             fetching_status_per_server[guild_id] = False
-            print(f"Fetching - Stopped - {ctx.guild}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time} - Fetching - Stopped - {ctx.guild}")
             fetch_feeds.cancel()
             #await ctx.send('RSS feed updates fetching has been stopped.')
             await ctx.send('RSS feeds are disabled until we fix the lag issue')
@@ -90,10 +93,12 @@ def main():
         if feed_url:
             print(f"Added feed : {feed_url}")
             feed_dict[feed_url] = ''
-            print(f"AddRSS - Success - {feed_url} - {ctx.guild}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time} - AddRSS - Success - {feed_url} - {ctx.guild}")
             await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
         else:
-            print(f"AddRSS - Fail - {ctx.guild}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time} - AddRSS - Fail - {ctx.guild}")
             await ctx.send(f'A feed url is required')
       
 
@@ -101,7 +106,8 @@ def main():
     async def status(ctx):
         #guild_id = ctx.guild.id
         if fetch_feeds.is_running():
-            print(f"Status - Fetching - {ctx.guild}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time} - Status - Fetching - {ctx.guild}")
             await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
         else:
             print(f"Status - Not fetching - {ctx.guild}")
@@ -123,7 +129,8 @@ def main():
         embed.add_field(name='_help', value='Displays this help message', inline=False)
         embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
 
-        print(f"Help - {ctx.guild}")
+        current_time = datetime.now().strftime("%H:%M:%S")
+        print(f"{current_time} - Help - {ctx.guild}")
         await ctx.send(embed=embed)
 
 
@@ -137,11 +144,12 @@ def main():
                                    The project will be opensourced on Github once we deploy the v1.0.0""",
                     color=discord.Color.blue()
                 )
-        print(f"Info - {ctx.guild}")
+        current_time = datetime.now().strftime("%H:%M:%S")
+        print(f"{current_time} - Info - '{ctx.guild}'")
         await ctx.send(embed=embed)
 
 
-    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ")
+    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", )
 
 if __name__ == "__main__":
     main()
