@@ -141,10 +141,11 @@ def main():
         print(f"Info - {ctx.guild}")
         await ctx.send(embed=embed)
 
+    
     @bot.command(name='check_rate_limit')
     async def check_rate_limit(ctx):
         # Make a request to the Discord API (example: fetching the bot's own information)
-        user = await bot.fetch_user(bot.user.id)
+        user = await bot.http.get_me()
 
         # Access the response headers to get rate limit information
         rate_limit_remaining = user.headers.get('X-RateLimit-Remaining')
@@ -158,6 +159,7 @@ def main():
             await ctx.send(response_message)
         else:
             await ctx.send('Rate limit information not available for this request.')
+
 
 
 
