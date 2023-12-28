@@ -23,7 +23,7 @@ def main():
 
     channel_name = 'infosec'
     fetching_status_per_server = {}
-
+ 
     @bot.event
     async def on_ready():
         print(f'We have logged in as {bot.user}')
