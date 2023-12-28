@@ -30,11 +30,6 @@ def main():
 
     @tasks.loop(minutes = 5) # repeat after every 5 minutes
     async def fetch_feeds():
-        for guild in bot.guilds: #added for debug
-            channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
-            if channel:
-                await channel.send("Bro I'm fetching")
-        print(feed_dict)
         for feed_url in feed_dict.keys():
 
             news_feed = feedparser.parse(feed_url)
