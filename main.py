@@ -65,7 +65,7 @@ def main():
         guild_id = ctx.guild.id
         fetching_status_per_server[guild_id] = True
         if not fetch_feeds.is_running():
-            #fetch_feeds.start()
+            fetch_feeds.start()
             #print(f"Fetching started for all servers")#server {ctx.guild.name}...")
             print(f"Fetching - Started - {ctx.guild}")
             await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
@@ -140,6 +140,25 @@ def main():
                 )
         print(f"Info - {ctx.guild}")
         await ctx.send(embed=embed)
+
+    @bot.command(name='check_rate_limit')
+    async def check_rate_limit(ctx):
+        # Make a request to the Discord API (example: fetching the bot's own information)
+        user = await bot.fetch_user(bot.user.id)
+
+        # Access the response headers to get rate limit information
+        rate_limit_remaining = user.headers.get('X-RateLimit-Remaining')
+        rate_limit_reset = user.headers.get('X-RateLimit-Reset')
+
+        if rate_limit_remaining is not None:
+            response_message = (
+                f'Remaining requests: {rate_limit_remaining}\n'
+                f'Reset time: {rate_limit_reset}'
+            )
+            await ctx.send(response_message)
+        else:
+            await ctx.send('Rate limit information not available for this request.')
+
 
 
     bot.run(TOKEN, log_level=logging.DEBUG)
