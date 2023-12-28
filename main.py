@@ -142,7 +142,7 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run(TOKEN)
+    bot.run(TOKEN, log_level=logging.DEBUG)
     #, log_handler=handler, log_level=logging.DEBUG)
  
 if __name__ == "__main__":
