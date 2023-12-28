@@ -21,7 +21,7 @@ def main():
         'http://www.bleepingcomputer.com/feed/' : '',
     }
 
-    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+    #handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
     channel_name = 'infosec'
     fetching_status_per_server = {}
@@ -34,30 +34,30 @@ def main():
     async def fetch_feeds():
         #print(feed_dict)
         print(f"I am fetching !")
-        for feed_url in feed_dict.keys():
+    #     for feed_url in feed_dict.keys():
 
-            news_feed = feedparser.parse(feed_url)
-            if feed_dict[feed_url] != news_feed.entries[0]['id']: #test si c'est nouveau 
-                embed = discord.Embed(
-                    title=news_feed.entries[0]['title'],
-                    url=news_feed.entries[0]['link'],
-                    description=news_feed.entries[0]['description'],
-                    color=discord.Color.blue()
-                )
-                # if 'img' in news_feed.entries[0]:
-                #     embed.set_image(url=news_feed.entries[0]['img']['url'])
-                embed.set_author(name=news_feed.entries[0]['author'])
-                current_time_gmt = datetime.now(timezone.utc)
-                formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
-                embed.set_footer(text=f"{formatted_time}")
+    #         news_feed = feedparser.parse(feed_url)
+    #         if feed_dict[feed_url] != news_feed.entries[0]['id']: #test si c'est nouveau 
+    #             embed = discord.Embed(
+    #                 title=news_feed.entries[0]['title'],
+    #                 url=news_feed.entries[0]['link'],
+    #                 description=news_feed.entries[0]['description'],
+    #                 color=discord.Color.blue()
+    #             )
+    #             # if 'img' in news_feed.entries[0]:
+    #             #     embed.set_image(url=news_feed.entries[0]['img']['url'])
+    #             embed.set_author(name=news_feed.entries[0]['author'])
+    #             current_time_gmt = datetime.now(timezone.utc)
+    #             formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
+    #             embed.set_footer(text=f"{formatted_time}")
                 
-                for guild in bot.guilds:
-                    channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
-                    if channel:
-                        await channel.send(embed=embed)
-                    else:
-                        print('fetched already')
-            feed_dict[feed_url] = news_feed.entries[0]['id']
+    #             for guild in bot.guilds:
+    #                 channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
+    #                 if channel:
+    #                     await channel.send(embed=embed)
+    #                 else:
+    #                     print('fetched already')
+    #         feed_dict[feed_url] = news_feed.entries[0]['id']
 
 
     @bot.command(name='startrss')
@@ -67,9 +67,8 @@ def main():
         if not fetch_feeds.is_running():
             #fetch_feeds.start()
             #print(f"Fetching started for all servers")#server {ctx.guild.name}...")
-            #await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
             print(f"Fetching - Started - {ctx.guild}")
-            await ctx.send('RSS feeds are disabled until we fix the lag issue')
+            await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
         else:
             await ctx.send('RSS feed updates are already being fetched.')
 
@@ -82,7 +81,6 @@ def main():
             print(f"Fetching - Stopped - {ctx.guild}")
             fetch_feeds.cancel()
             #await ctx.send('RSS feed updates fetching has been stopped.')
-            await ctx.send('RSS feeds are disabled until we fix the lag issue')
         else:
             fetch_feeds.cancel()
             await ctx.send('The bot is not currently fetching.')
@@ -144,7 +142,8 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run(TOKEN, log_handler=handler, log_level=logging.DEBUG)
+    bot.run(TOKEN)
+    #, log_handler=handler, log_level=logging.DEBUG)
  
 if __name__ == "__main__":
     main()
