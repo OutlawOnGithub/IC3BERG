@@ -10,18 +10,17 @@ def main():
 
     TOKEN = os.getenv("DISCORD_TOKEN")
 
-    intents = discord.Intents.all()
-    # intents.messages = True
-    # intents.guilds = True
+    #intents = discord.Intents.all()
+    intents = discord.Intents(messages=True, message_content = True)    # intents.guilds = True
     # intents.reactions = True
-    bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
- 
+    bot = commands.Bot(command_prefix='_', intents=intents)
+
     @bot.event
     async def on_ready():
         print(f'We have logged in as {bot.user}')
 
-    @bot.command(name='startrss')
-    async def start_feeds(ctx):
+    @bot.command(name='hi')
+    async def say_hi(ctx):
         current_time = datetime.now().strftime("%H:%M:%S")
         await ctx.send(f"[{current_time}] - Bot is answering")
 
