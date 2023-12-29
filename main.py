@@ -137,6 +137,25 @@ def main():
 
         await ctx.send(embed=embed)
 
+    @bot.command()
+    async def locateip(ctx, ip_address: str):
+        api_url = f'http://ip-api.com/json/{ip_address}'
+        response = requests.get(api_url)
+        
+        if response.status_code == 200:
+            data = response.json()
+
+            embed = discord.Embed(
+                title=f'IP Information for {ip_address}',
+                color=discord.Color.green()
+            )
+
+            for key, value in data.items():
+                embed.add_field(name=key.capitalize(), value=str(value), inline=False)
+
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
 
 
     @bot.command(name='help')
@@ -150,6 +169,8 @@ def main():
         embed.add_field(name='_stoprss', value='Stops fetching and sending the news', inline=False)
         embed.add_field(name='_addrss <feed_url>', value='Adds a new RSS flux to fetch', inline=False)
         embed.add_field(name='_status', value='Displays if the bot is currently fetching the news or not', inline=False)
+        embed.add_field(name='_tools <field>', value='Displays tools for the corresponding field', inline=False)
+        embed.add_field(name='_locateip <ip>', value='Displays several informations about the given IP', inline=False)
         embed.add_field(name='_info', value='Displays information about the makers of this bot', inline=False)
         embed.add_field(name='_help', value='Displays this help message', inline=False)
         embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
