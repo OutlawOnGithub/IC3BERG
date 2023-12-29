@@ -4,3 +4,5 @@ feedparser
 requests
 asyncio
 datetime
+hikari
+logging
