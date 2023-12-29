@@ -96,10 +96,21 @@ def main():
     @bot.group()
     async def tools(ctx):
         if ctx.invoked_subcommand is None:
-            await ctx.send(f'You can ask for tools for differents purposes :\nOSINT, bruteforce, geoip...')
+            embed = discord.Embed(
+                    title="List of available tools lists",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+            embed.add_field(name='OSINT', value='Open SOurce INTelligence', inline=False)
+            embed.add_field(name='Bruteforce', value='To crack passwords/hashes', inline=False)
+            embed.add_field(name='Deepweep', value='Deepweb related tools', inline=False)
+            embed.add_field(name='Training', value='Several places to train your skills', inline=False)
+            embed.set_footer(text='To access the list, _tools <field>, everything in lowercase`')
+
+            await ctx.send(embed=embed)
 
 
-    @tools.command(name='osint')
+    @tools.command(name='OSINT')
     async def _bot(ctx):
         embed = discord.Embed(
                     title="List of useful OSINT tools",
