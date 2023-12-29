@@ -153,7 +153,7 @@ def main():
                 try:
                     embed.add_field(name="Country", value=f"{data['country']} [{data['countryCode']}], {data['regionName']} {data['region']}", inline=False)
                     embed.add_field(name="City", value=f"{data['city']} - {data['zip']}", inline=False)
-                    embed.add_field(name="Geolocation (Lat - Lon)", value=f"{data['lat']} {data['lon']}", inline=False)
+                    embed.add_field(name="Geolocation (Lat, Lon)", value=f"{data['lat']}, {data['lon']}", inline=False)
                     embed.add_field(name="Timezone", value=f"{data['timezone']}", inline=False)
                     embed.add_field(name="Organisation", value=f"{data['isp']} ({data['org']})", inline=False)
                     embed.add_field(name="AS Number", value=f"{data['as']}", inline=False)
