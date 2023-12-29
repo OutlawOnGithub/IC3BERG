@@ -93,6 +93,51 @@ def main():
         else:
             await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
 
+    @bot.group()
+    async def tools(ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send(f'You can ask for tools for differents purposes :\nOSINT, bruteforce, geoip...')
+
+
+    @tools.command(name='osint')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful OSINT tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='Email checker', value='Holehe (CLI)', inline=False)
+        embed.add_field(name='List of OSINT tools', value='OSINT MAPS', inline=False)
+        embed.add_field(name='DeepWeb Scraper', value='OnionSearch', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+    @tools.command(name='bruteforce')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful bruteforce tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='To be added...', value='', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+    @tools.command(name='geoip')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful GEOIP related tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='To be added...', value='', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+
 
     @bot.command(name='help')
     async def help(ctx):
