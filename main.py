@@ -36,7 +36,7 @@ def main():
                 embed = discord.Embed(
                     title=news_feed.entries[0]['title'],
                     url=news_feed.entries[0]['link'],
-                    description=news_feed.entries[0]['description'],
+                    description=news_feed.entries[0]['description'].replace("<p>", "").replace("</p>", ""),
                     color=discord.Color.blue()
                 )
                 # if 'img' in news_feed.entries[0]:
