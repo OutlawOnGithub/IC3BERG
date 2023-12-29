@@ -1,91 +1,131 @@
-# This example requires the 'members' privileged intent to use the Member converter
-# and the 'message_content' privileged intent for prefixed commands.
-
-import random
-import os
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+import os
+from rss import *
+from datetime import timezone, datetime
+import asyncio
+import logging
 
-description = """
-An example bot to showcase the discord.ext.commands extension module.
-There are a number of utility commands being showcased here.
-"""
+def main(): 
 
-token=os.environ["DISCORD_TOKEN"]
+    TOKEN = os.getenv("DISCORD_TOKEN")
 
+    intents = discord.Intents.all()
+    intents.messages = True
+    intents.guilds = True
+    intents.reactions = True
+    bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
 
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
+    feed_dict = {
+        'https://www.securitymagazine.com/rss' : '',
+    }
 
-bot = commands.Bot(
-    command_prefix=commands.when_mentioned_or("!"),
-    description=description,
-    intents=intents,
-)
+    channel_name = 'infosec'
+    fetching_status_per_server = {}
+ 
+    @bot.event
+    async def on_ready():
+        print(f'We have logged in as {bot.user}')
 
+    @tasks.loop(minutes = 5) # repeat after every 5 minutes
+    async def fetch_feeds():
+        for feed_url in feed_dict.keys():
 
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("------")
-
-
-@bot.command()
-async def add(ctx: commands.Context, left: int, right: int):
-    """Adds two numbers together."""
-    await ctx.send(str(left + right))
-
-
-@bot.command()
-async def roll(ctx: commands.Context, dice: str):
-    """Rolls a die in NdN format."""
-    try:
-        rolls, limit = map(int, dice.split("d"))
-    except ValueError:
-        await ctx.send("Format has to be in NdN!")
-        return
-
-    # _ is used in the generation of our result as we don't need the number that comes from the usage of range(rolls).
-    result = ", ".join(str(random.randint(1, limit)) for _ in range(rolls))
-    await ctx.send(result)
-
-
-@bot.command(description="For when you wanna settle the score some other way")
-async def choose(ctx: commands.Context, *choices: str):
-    """Chooses between multiple choices."""
-    await ctx.send(random.choice(choices))
-
-
-@bot.command()
-async def repeat(ctx: commands.Context, times: int, *, content: str = "repeating..."):
-    """Repeats a message multiple times."""
-    for _ in range(times):
-        await ctx.send(content)
+            news_feed = feedparser.parse(feed_url)
+            if feed_dict[feed_url] != news_feed.entries[0]['id']: #test si c'est nouveau 
+                embed = discord.Embed(
+                    title=news_feed.entries[0]['title'],
+                    url=news_feed.entries[0]['link'],
+                    description=news_feed.entries[0]['description'],
+                    color=discord.Color.blue()
+                )
+                # if 'img' in news_feed.entries[0]:
+                #     embed.set_image(url=news_feed.entries[0]['img']['url'])
+                embed.set_author(name=news_feed.entries[0]['author'])
+                current_time_gmt = datetime.now(timezone.utc)
+                formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
+                embed.set_footer(text=f"{formatted_time}")
+                
+                for guild in bot.guilds:
+                    channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
+                    if channel:
+                        await channel.send(embed=embed)
+            feed_dict[feed_url] = news_feed.entries[0]['id']
 
 
-@bot.command()
-async def joined(ctx: commands.Context, member: discord.Member):
-    """Says when a member joined."""
-    await ctx.send(f"{member.name} joined in {member.joined_at}")
+    @bot.command(name='startrss')
+    async def start_feeds(ctx):
+        guild_id = ctx.guild.id
+        fetching_status_per_server[guild_id] = True
+        if not fetch_feeds.is_running():
+            fetch_feeds.start()
+            await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+        else:
+            await ctx.send('RSS feed updates are already being fetched.')
 
 
-@bot.group()
-async def cool(ctx: commands.Context):
-    """
-    Says if a user is cool.
-
-    In reality this just checks if a subcommand is being invoked.
-    """
-
-    if ctx.invoked_subcommand is None:
-        await ctx.send(f"No, {ctx.subcommand_passed} is not cool")
-
-
-@cool.command(name="bot")
-async def _bot(ctx: commands.Context):
-    """Is the bot cool?"""
-    await ctx.send("Yes, the bot is cool.")
+    @bot.command(name='stoprss')
+    async def stop_feeds(ctx):
+        guild_id = ctx.guild.id
+        if fetch_feeds.is_running():
+            fetching_status_per_server[guild_id] = False
+            fetch_feeds.cancel()
+            await ctx.send('RSS feed updates fetching has been stopped.')
+        else:
+            fetch_feeds.cancel()
+            await ctx.send('The bot is not currently fetching.')
 
 
-bot.run(token)
+    @bot.command(name='addrss')
+    async def add_feed(ctx, feed_url=''):
+        if feed_url:
+            feed_dict[feed_url] = ''
+            await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
+        else:
+            await ctx.send(f'A feed url is required')
+      
+
+    @bot.command(name='status')
+    async def status(ctx):
+        #guild_id = ctx.guild.id
+        if fetch_feeds.is_running():
+            await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
+        else:
+            await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
+
+
+    @bot.command(name='help')
+    async def help(ctx):
+        embed = discord.Embed(
+                    title="Command list",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.blue()
+                )
+        embed.add_field(name='_startrss', value='Starts fetching the saved RSS flux', inline=False)
+        embed.add_field(name='_stoprss', value='Stops fetching and sending the news', inline=False)
+        embed.add_field(name='_addrss <feed_url>', value='Adds a new RSS flux to fetch', inline=False)
+        embed.add_field(name='_status', value='Displays if the bot is currently fetching the news or not', inline=False)
+        embed.add_field(name='_info', value='Displays information about the makers of this bot', inline=False)
+        embed.add_field(name='_help', value='Displays this help message', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+
+    @bot.command(name='info')
+    async def info(ctx):
+        embed = discord.Embed(
+                    title="Informations about IC3BERG",
+                    url="https://github.com/OutlawOnGithub/IC3BERG/",
+                    description="""This bot is a personal project by two IT students, Outlaw and Ayerman/Firzam.
+                                   It is currently in development and will, in the future, include numerous functionalities related to cybersecurity.
+                                   The project will be opensourced on Github once we deploy the v1.0.0""",
+                    color=discord.Color.blue()
+                )
+        await ctx.send(embed=embed)
+
+
+    bot.run(TOKEN, log_level=logging.DEBUG)
+
+if __name__ == "__main__":
+    main()
