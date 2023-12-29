@@ -103,7 +103,7 @@ def main():
                 )
             embed.add_field(name='OSINT', value='Open SOurce INTelligence', inline=False)
             embed.add_field(name='Bruteforce', value='To crack passwords/hashes', inline=False)
-            embed.add_field(name='Deepweep', value='Deepweb related tools', inline=False)
+            embed.add_field(name='Deepweb', value='Deepweb related tools', inline=False)
             embed.add_field(name='Training', value='Several places to train your skills', inline=False)
             embed.set_footer(text='To access the list, _tools <field>, everything in lowercase`')
 
