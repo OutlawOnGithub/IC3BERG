@@ -17,7 +17,8 @@ def main():
     bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
 
     feed_dict = {
-        'https://www.securitymagazine.com/rss' : '',
+        'https://krebsonsecurity.com/feed/' : '',
+        'http://www.bleepingcomputer.com/feed/' : '',
     }
 
     channel_name = 'infosec'
