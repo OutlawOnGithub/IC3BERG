@@ -14,11 +14,10 @@ def main():
     intents.messages = True
     intents.guilds = True
     intents.reactions = True
-    bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
+    bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
     feed_dict = {
-        'https://krebsonsecurity.com/feed/' : '',
-        'http://www.bleepingcomputer.com/feed/' : '',
+        'https://www.securitymagazine.com/rss/15' : '',
     }
 
     channel_name = 'infosec'
@@ -37,7 +36,7 @@ def main():
                 embed = discord.Embed(
                     title=news_feed.entries[0]['title'],
                     url=news_feed.entries[0]['link'],
-                    description=news_feed.entries[0]['description'],
+                    description=news_feed.entries[0]['description'].replace("<p>", "").replace("</p>", ""),
                     color=discord.Color.blue()
                 )
                 # if 'img' in news_feed.entries[0]:
@@ -51,8 +50,6 @@ def main():
                     channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
                     if channel:
                         await channel.send(embed=embed)
-                    else:
-                        print('fetched already')
             feed_dict[feed_url] = news_feed.entries[0]['id']
 
 
@@ -62,7 +59,6 @@ def main():
         fetching_status_per_server[guild_id] = True
         if not fetch_feeds.is_running():
             fetch_feeds.start()
-            print(f"Fetching started for all servers")#server {ctx.guild.name}...")
             await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
         else:
             await ctx.send('RSS feed updates are already being fetched.')
@@ -83,7 +79,6 @@ def main():
     @bot.command(name='addrss')
     async def add_feed(ctx, feed_url=''):
         if feed_url:
-            print(f"Added feed : {feed_url}")
             feed_dict[feed_url] = ''
             await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
         else:
@@ -94,11 +89,83 @@ def main():
     async def status(ctx):
         #guild_id = ctx.guild.id
         if fetch_feeds.is_running():
-            print("Status : Fetching")
             await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
         else:
-            print("Status : Not fetching")
             await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
+
+    @bot.group()
+    async def tools(ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send(f'You can ask for tools for differents purposes :\nOSINT, bruteforce, geoip...')
+
+
+    @tools.command(name='osint')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful OSINT tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='Email checker', value='Holehe (CLI)', inline=False)
+        embed.add_field(name='List of OSINT tools', value='OSINT MAPS', inline=False)
+        embed.add_field(name='DeepWeb Scraper', value='OnionSearch', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+    @tools.command(name='bruteforce')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful bruteforce tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='To be added...', value='', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+    @tools.command(name='geoip')
+    async def _bot(ctx):
+        embed = discord.Embed(
+                    title="List of useful GEOIP related tools",
+                    #url="https://github.com/OutlawOnGithub",
+                    color=discord.Color.green()
+                )
+        embed.add_field(name='To be added...', value='', inline=False)
+        embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
+
+        await ctx.send(embed=embed)
+
+    @bot.command()
+    async def locateip(ctx, ip_address: str):
+        api_url = f'    /json/{ip_address}'
+        response = requests.get(api_url)
+        
+        if response.status_code == 200:
+            data = response.json()
+
+            embed = discord.Embed(
+                title=f'IP Information for {ip_address}',
+                color=discord.Color.green()
+            )
+            if data["status"] != "fail":
+                try:
+                    embed.add_field(name="Country", value=f"{data['country']} [{data['countryCode']}], {data['regionName']} {data['region']}", inline=False)
+                    embed.add_field(name="City", value=f"{data['city']} - {data['zip']}", inline=False)
+                    embed.add_field(name="Geolocation (Lat - Lon)", value=f"{data['lat']} {data['lon']}", inline=False)
+                    embed.add_field(name="Timezone", value=f"{data['timezone']}", inline=False)
+                    embed.add_field(name="Organisation", value=f"{data['isp']} ({data['org']})", inline=False)
+                    embed.add_field(name="AS Number", value=f"{data['as']}", inline=False)
+                except Exception as e:
+                    await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
+
+
+        else:
+            await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
 
 
     @bot.command(name='help')
@@ -112,6 +179,8 @@ def main():
         embed.add_field(name='_stoprss', value='Stops fetching and sending the news', inline=False)
         embed.add_field(name='_addrss <feed_url>', value='Adds a new RSS flux to fetch', inline=False)
         embed.add_field(name='_status', value='Displays if the bot is currently fetching the news or not', inline=False)
+        embed.add_field(name='_tools <field>', value='Displays tools for the corresponding field', inline=False)
+        embed.add_field(name='_locateip <ip>', value='Displays several informations about the given IP', inline=False)
         embed.add_field(name='_info', value='Displays information about the makers of this bot', inline=False)
         embed.add_field(name='_help', value='Displays this help message', inline=False)
         embed.set_footer(text='For any requests, DM `ox6cfc1ab7`')
@@ -132,7 +201,7 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run(TOKEN, log_level=logging.DEBUG)
+    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_level=logging.DEBUG)
 
 if __name__ == "__main__":
     main()
