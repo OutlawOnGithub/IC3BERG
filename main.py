@@ -139,7 +139,7 @@ def main():
 
     @bot.command()
     async def locateip(ctx, ip_address: str):
-        api_url = f'http://ip-api.com/json/{ip_address}'
+        api_url = f'    /json/{ip_address}'
         response = requests.get(api_url)
         
         if response.status_code == 200:
@@ -149,15 +149,21 @@ def main():
                 title=f'IP Information for {ip_address}',
                 color=discord.Color.green()
             )
-            embed.add_field(name="Country", value=f"{data['country']} [{data['countryCode']}], {data['regionName']} {data['region']}", inline=False)
-            embed.add_field(name="City", value=f"{data['city']} - {data['zip']}", inline=False)
-            embed.add_field(name="Geolocation (Lat - Lon)", value=f"{data['lat']} {data['lon']}", inline=False)
-            embed.add_field(name="Timezone", value=f"{data['timezone']}", inline=False)
-            embed.add_field(name="Organisation", value=f"{data['isp']} ({data['org']})", inline=False)
-            embed.add_field(name="AS Number", value=f"{data['as']}", inline=False)
+            if data["status"] != "fail":
+                try:
+                    embed.add_field(name="Country", value=f"{data['country']} [{data['countryCode']}], {data['regionName']} {data['region']}", inline=False)
+                    embed.add_field(name="City", value=f"{data['city']} - {data['zip']}", inline=False)
+                    embed.add_field(name="Geolocation (Lat - Lon)", value=f"{data['lat']} {data['lon']}", inline=False)
+                    embed.add_field(name="Timezone", value=f"{data['timezone']}", inline=False)
+                    embed.add_field(name="Organisation", value=f"{data['isp']} ({data['org']})", inline=False)
+                    embed.add_field(name="AS Number", value=f"{data['as']}", inline=False)
+                except Exception as e:
+                    await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
 
 
-            await ctx.send(embed=embed)
         else:
             await ctx.send(f"Failed to fetch information for {ip_address}. Please check the IP and try again.")
 
