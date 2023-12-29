@@ -140,7 +140,7 @@ def main():
     @bot.command()
     async def locateip(ctx, ip_address: str):
         if ip_address != ".":
-            api_url = f'    /json/{ip_address}'
+            api_url = f'http://ip-api.com/json/{ip_address}'
             response = requests.get(api_url)
             
             if response.status_code == 200:
