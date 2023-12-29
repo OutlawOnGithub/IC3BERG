@@ -1,25 +1,19 @@
-import discord
-from discord.ext import commands, tasks
 import os
-import logging
 
-def main(): 
+import hikari
 
-    TOKEN = os.getenv("DISCORD_TOKEN")
+bot = hikari.GatewayBot(token=os.environ["DISCORD_TOKEN"])
 
-    intents = discord.Intents(messages=True, message_content = True)    # intents.guilds = True
 
-    bot = commands.Bot(command_prefix='!', intents=intents)
+@bot.listen()
+async def on_message(event: hikari.MessageCreateEvent) -> None:
+    """Listen for messages being created."""
+    if not event.is_human:
+        # Do not respond to bots or webhooks!
+        return
 
-    @bot.event
-    async def on_ready():
-        print(f'We have logged in as {bot.user}')
+    if event.content == "!ping":
+        await event.message.respond(f"Pong! {bot.heartbeat_latency * 1_000:.0f}ms")
 
-    @bot.command(name='hi')
-    async def say_hi(ctx):
-        await ctx.send(f"Hi !")
 
-    bot.run(TOKEN, log_level=logging.DEBUG)
-
-if __name__ == "__main__":
-    main()
+bot.run()
