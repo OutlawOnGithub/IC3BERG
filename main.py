@@ -11,7 +11,7 @@ def main():
 
     TOKEN = os.getenv("DISCORD_TOKEN")
 
-    bot = commands.Bot(command_prefix='!', intents=discord.Intents.all(), activity=discord.Activity(type=discord.ActivityType.playing, name="_help"), help_command=None)
+    bot = commands.Bot(command_prefix='_', intents=discord.Intents.all(), activity=discord.Activity(type=discord.ActivityType.playing, name="_help"), help_command=None)
 
     channel_name = 'infosec'
     fetching_status_per_server = {}
@@ -212,7 +212,7 @@ def main():
         await ctx.send(embed=embed)
 
 
-    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_level=logging.DEBUG)
+    bot.run(TOKEN, log_level=logging.DEBUG)
 
 if __name__ == "__main__":
     main()
