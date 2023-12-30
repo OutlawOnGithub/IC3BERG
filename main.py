@@ -1,20 +1,17 @@
 import discord
 from discord.ext import commands, tasks
 import os
-from rss import *
+import feedparser
 from datetime import timezone, datetime
 import asyncio
 import logging
+from utils.rss import *
 
 def main(): 
 
     TOKEN = os.getenv("DISCORD_TOKEN")
 
-    intents = discord.Intents.all()
-    intents.messages = True
-    intents.guilds = True
-    intents.reactions = True
-    bot = commands.Bot(command_prefix='_', intents=intents, help_command=None)
+    bot = commands.Bot(command_prefix='_', intents=discord.Intents.all(), activity=discord.Activity(type=discord.ActivityType.playing, name="_help"), help_command=None)
 
     feed_dict = {
         'https://www.securitymagazine.com/rss/15' : '',
@@ -51,6 +48,11 @@ def main():
                     if channel:
                         await channel.send(embed=embed)
             feed_dict[feed_url] = news_feed.entries[0]['id']
+
+    @bot.group()
+    async def rss(ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send(RSS.default())
 
 
     @bot.command(name='startrss')
