@@ -93,45 +93,6 @@ def main():
     async def rss_list(ctx):
         await ctx.send(embed = rss_instance.list_feed(ctx))
 
-
-    # @bot.command(name='startrss')
-    # async def startrss(ctx):
-    #     if not fetch_feeds.is_running():
-    #         fetch_feeds.start()
-    #         await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
-    #     else:
-    #         await ctx.send('RSS feed updates are already being fetched.')
-
-
-    # @bot.command(name='stoprss')
-    # async def stop_feeds(ctx):
-    #     guild_id = ctx.guild.id
-    #     if fetch_feeds.is_running():
-    #         fetch_feeds.cancel()
-    #         await ctx.send('RSS feed updates fetching has been stopped.')
-    #     else:
-    #         fetch_feeds.cancel()
-    #         await ctx.send('The bot is not currently fetching.')
-
-
-    # @bot.command(name='addrss')
-    # async def add_feed(ctx, feed_url=''):
-    #     if feed_url:
-    #         rss_instance.feed_list[feed_url] = ''
-    #         await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
-    #     else:
-    #         await ctx.send(f'A feed url is required')
-      
-
-    # @bot.command(name='status')
-    # async def status(ctx):
-    #     #guild_id = ctx.guild.id
-    #     if fetch_feeds.is_running():
-    #         await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
-    #     else:
-    #         await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
-
-    @bot.group()
     async def tools(ctx):
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(
