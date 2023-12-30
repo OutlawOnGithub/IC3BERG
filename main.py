@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import os
 import feedparser
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 import asyncio
 import logging
 from utils.rss import *
@@ -13,89 +13,86 @@ def main():
 
     bot = commands.Bot(command_prefix='_', intents=discord.Intents.all(), activity=discord.Activity(type=discord.ActivityType.playing, name="_help"), help_command=None)
 
-    feed_dict = {
-        'https://www.securitymagazine.com/rss/15' : '',
-    }
-
     channel_name = 'infosec'
     fetching_status_per_server = {}
+
+    rss_instance = RSS()
  
     @bot.event
     async def on_ready():
         print(f'We have logged in as {bot.user}')
 
-    @tasks.loop(minutes = 5) # repeat after every 5 minutes
+    @tasks.loop(minutes=20)
     async def fetch_feeds():
-        for feed_url in feed_dict.keys():
+        for feed in rss_instance.feed_list:
+            feed_url = feed['url']
+            already_fetched = feed['already_fetched']
 
-            news_feed = feedparser.parse(feed_url)
-            if feed_dict[feed_url] != news_feed.entries[0]['id']: #test si c'est nouveau 
-                embed = discord.Embed(
-                    title=news_feed.entries[0]['title'],
-                    url=news_feed.entries[0]['link'],
-                    description=news_feed.entries[0]['description'].replace("<p>", "").replace("</p>", ""),
-                    color=discord.Color.blue()
-                )
-                # if 'img' in news_feed.entries[0]:
-                #     embed.set_image(url=news_feed.entries[0]['img']['url'])
-                embed.set_author(name=news_feed.entries[0]['author'])
-                current_time_gmt = datetime.now(timezone.utc)
-                formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
-                embed.set_footer(text=f"{formatted_time}")
-                
-                for guild in bot.guilds:
-                    channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
-                    if channel:
-                        await channel.send(embed=embed)
-            feed_dict[feed_url] = news_feed.entries[0]['id']
+            if not already_fetched:
+                news_feed = feedparser.parse(feed_url)
+
+                if news_feed.entries:
+                    embed = discord.Embed(
+                        title=news_feed.entries[0]['title'],
+                        url=news_feed.entries[0]['link'],
+                        description=news_feed.entries[0]['description'].replace("<p>", "").replace("</p>", ""),
+                        color=discord.Color.blue()
+                    )
+                    embed.set_author(name=news_feed.entries[0]['author'])
+                    current_time_gmt = datetime.datetime.now(timezone.utc)
+                    formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
+                    embed.set_footer(text=f"{formatted_time}")
+
+                    for guild in bot.guilds:
+                        channel = discord.utils.get(guild.channels, name=channel_name, type=discord.ChannelType.text)
+                        if channel:
+                            await channel.send(embed=embed)
+
+                    # Update 'already_fetched' and other relevant fields in your feed dictionary
+                    feed['already_fetched'] = True
+                    # You might want to store additional information about the feed in the dictionary
+                    # such as the last fetched entry ID, etc.
 
     @bot.group()
     async def rss(ctx):
         if ctx.invoked_subcommand is None:
-            await ctx.send(RSS.default())
+            await ctx.send(embed = rss_instance.default(ctx))
 
-
-    @bot.command(name='startrss')
-    async def start_feeds(ctx):
-        guild_id = ctx.guild.id
-        fetching_status_per_server[guild_id] = True
-        if not fetch_feeds.is_running():
-            fetch_feeds.start()
-            await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+    @rss.command(name='start')
+    async def rss_start(ctx):
+        if rss_instance.feed_list:
+            if not fetch_feeds.is_running():
+                fetch_feeds.start()
+                await ctx.send('RSS feed updates will now be fetched every 5 minutes.')
+            else:
+                await ctx.send('RSS feed updates are already being fetched.')
         else:
-            await ctx.send('RSS feed updates are already being fetched.')
+            await ctx.send('You must add a feed to fetch first ! Do `_rss add <feed_url>`')
 
-
-    @bot.command(name='stoprss')
-    async def stop_feeds(ctx):
-        guild_id = ctx.guild.id
+    @rss.command(name='stop')
+    async def rss_stop(ctx):
         if fetch_feeds.is_running():
-            fetching_status_per_server[guild_id] = False
             fetch_feeds.cancel()
             await ctx.send('RSS feed updates fetching has been stopped.')
         else:
             fetch_feeds.cancel()
             await ctx.send('The bot is not currently fetching.')
 
-
-    @bot.command(name='addrss')
-    async def add_feed(ctx, feed_url=''):
-        if feed_url:
-            feed_dict[feed_url] = ''
-            await ctx.send(f'You successfully added the RSS feed : `{feed_url}`')
-        else:
-            await ctx.send(f'A feed url is required')
-      
-
-    @bot.command(name='status')
-    async def status(ctx):
-        #guild_id = ctx.guild.id
+    @rss.command(name='status')
+    async def rss_status(ctx):
         if fetch_feeds.is_running():
-            await ctx.send(f'The bot is currently fetching RSS feed updates in all servers.')
+            await ctx.send(f'The bot is currently fetching RSS feed updates in this server.')
         else:
-            await ctx.send(f'The bot is not fetching RSS feed updates in all servers.')
+            await ctx.send(f'The bot is not fetching RSS feed updates in this server.')
 
-    @bot.group()
+    @rss.command(name='add')
+    async def rss_add(ctx, feed_url = ''):
+        await ctx.send(embed = rss_instance.add_feed(ctx, feed_url=feed_url))
+
+    @rss.command(name='list')
+    async def rss_list(ctx):
+        await ctx.send(embed = rss_instance.list_feed(ctx))
+
     async def tools(ctx):
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(
@@ -113,7 +110,7 @@ def main():
 
 
     @tools.command(name='OSINT')
-    async def _bot(ctx):
+    async def osint(ctx):
         embed = discord.Embed(
                     title="List of useful OSINT tools",
                     #url="https://github.com/OutlawOnGithub",
@@ -127,7 +124,7 @@ def main():
         await ctx.send(embed=embed)
 
     @tools.command(name='bruteforce')
-    async def _bot(ctx):
+    async def bruteforce(ctx):
         embed = discord.Embed(
                     title="List of useful bruteforce tools",
                     #url="https://github.com/OutlawOnGithub",
@@ -139,7 +136,7 @@ def main():
         await ctx.send(embed=embed)
 
     @tools.command(name='geoip')
-    async def _bot(ctx):
+    async def geoip(ctx):
         embed = discord.Embed(
                     title="List of useful GEOIP related tools",
                     #url="https://github.com/OutlawOnGithub",

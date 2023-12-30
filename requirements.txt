@@ -4,4 +4,5 @@ feedparser
 requests
 asyncio
 datetime
-hikari
+urllib
+beautifulsoup4
