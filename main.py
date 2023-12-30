@@ -93,6 +93,7 @@ def main():
     async def rss_list(ctx):
         await ctx.send(embed = rss_instance.list_feed(ctx))
 
+    @bot.group()
     async def tools(ctx):
         if ctx.invoked_subcommand is None:
             embed = discord.Embed(
