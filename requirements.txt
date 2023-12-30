@@ -4,5 +4,4 @@ feedparser
 requests
 asyncio
 datetime
-urllib
 beautifulsoup4
