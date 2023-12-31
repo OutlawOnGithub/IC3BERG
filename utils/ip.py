@@ -30,7 +30,7 @@ class IP:
 
                 embed = discord.Embed(
                     title=f"IP Information for {ip_address}",
-                    color=discord.Color.nitro_pink(),
+                    color=discord.Color.dark_magenta(),
                 )
                 if data["status"] != "fail":
                     try:
@@ -68,31 +68,31 @@ class IP:
                         return discord.Embed(
                             title=f"Failed to fetch information for {ip_address}",
                             description="Please provide a valid IP and try again.",
-                            color=discord.Color.nitro_pink(),
+                            color=discord.Color.dark_magenta(),
                         )
                 elif data["message"] == "reserved range":
                     return discord.Embed(
                         title=f"This IP is either for private networks or reserved",
                         description="Please use a public IP or a domain name",
-                        color=discord.Color.nitro_pink(),
+                        color=discord.Color.dark_magenta(),
                     )
                 else:
                     return discord.Embed(
                         title=f"Failed to fetch information for {ip_address}",
                         description="Please check the IP and try again.",
-                        color=discord.Color.nitro_pink(),
+                        color=discord.Color.dark_magenta(),
                     )
             else:
                 return discord.Embed(
                     title=f"Failed to fetch information for {ip_address}",
                     description="Please check the IP and try again.",
-                    color=discord.Color.nitro_pink(),
+                    color=discord.Color.dark_magenta(),
                 )
         else:
             return discord.Embed(
                 title=f"Please provide one of the following",
                 description="IPv4 address, IPv6 address or domain name",
-                color=discord.Color.nitro_pink(),
+                color=discord.Color.dark_magenta(),
             )
 
     def reputation(self, ctx, ip_address):
@@ -193,12 +193,12 @@ class IP:
                 return discord.Embed(
                     title=f"Error fetching data from AbuseIPDB",
                     description=f"Status Code: {response.status_code}",
-                    color=discord.Color.nitro_pink(),
+                    color=discord.Color.dark_magenta(),
                 )
         else:
             return discord.Embed(
                     title=f"Please provide a valid IPv4/6 adress",
-                    color=discord.Color.nitro_pink(),
+                    color=discord.Color.dark_magenta(),
                 )
 
     def is_ip(self, address):
