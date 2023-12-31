@@ -119,76 +119,83 @@ class IP:
             # Check if the request was successful (status code 200)
             if response.status_code == 200:
                 data = response.json()
-                abuseScore = data["data"]["abuseConfidenceScore"]
-                filled_blocks = int(abuseScore / 3)
-                empty_blocks = 33 - filled_blocks
-                loading_bar_str = "█" * filled_blocks + "░" * empty_blocks
-                if data["data"]["isTor"] == False:
-                    # Create an embed with information from the API response
-                    match abuseScore:
-                        case value if value < 50:
-                            embed = discord.Embed(
-                                title=f"This IP is safe",
-                                description=f"AbuseIPDB Report for {ip_address}",
-                                color=discord.Color.green(),
-                            )
-                        case value if value > 50 and value < 80:
-                            embed = discord.Embed(
-                                title=f"This IP is probably malicious",
-                                description=f"AbuseIPDB Report for {ip_address}",
-                                color=discord.Color.yellow(),
-                            )
-                        case value if value > 80:
-                            embed = discord.Embed(
-                                title=f"This IP is know as malicious",
-                                description=f"AbuseIPDB Report for {ip_address}",
-                                color=discord.Color.red(),
-                            )
-                            embed.add_field(
-                                name="Number of total reports",
-                                value=data["data"]["totalReports"],
-                                inline=False,
-                            )
-                    embed.add_field(
-                        name=f"IP location",
-                        value=f"{data['data']['countryCode']}",
-                        inline=False,
-                    )
-                    embed.add_field(
-                        name=f"ISP", value=data["data"]["isp"], inline=False
-                    )
-                    embed.add_field(
-                        name=f"Abuse confidence score : {abuseScore}",
-                        value=f" `{loading_bar_str}`",
-                        inline=False,
-                    )
-                    embed.set_footer(text="Do _ip locate <ip> for more details")
-                    return embed
+                if data['data']['isPublic']:
+                    abuseScore = data["data"]["abuseConfidenceScore"]
+                    filled_blocks = int(abuseScore / 3)
+                    empty_blocks = 33 - filled_blocks
+                    loading_bar_str = "█" * filled_blocks + "░" * empty_blocks
+                    if not data["data"]["isTor"]:
+                        # Create an embed with information from the API response
+                        match abuseScore:
+                            case value if value < 50:
+                                embed = discord.Embed(
+                                    title=f"This IP is safe",
+                                    description=f"AbuseIPDB Report for {ip_address}",
+                                    color=discord.Color.green(),
+                                )
+                            case value if value > 50 and value < 80:
+                                embed = discord.Embed(
+                                    title=f"This IP is probably malicious",
+                                    description=f"AbuseIPDB Report for {ip_address}",
+                                    color=discord.Color.yellow(),
+                                )
+                            case value if value > 80:
+                                embed = discord.Embed(
+                                    title=f"This IP is know as malicious",
+                                    description=f"AbuseIPDB Report for {ip_address}",
+                                    color=discord.Color.red(),
+                                )
+                                embed.add_field(
+                                    name="Number of total reports",
+                                    value=data["data"]["totalReports"],
+                                    inline=False,
+                                )
+                        embed.add_field(
+                            name=f"IP location",
+                            value=f"{data['data']['countryCode']}",
+                            inline=False,
+                        )
+                        embed.add_field(
+                            name=f"ISP", value=data["data"]["isp"], inline=False
+                        )
+                        embed.add_field(
+                            name=f"Abuse confidence score : {abuseScore}",
+                            value=f" `{loading_bar_str}`",
+                            inline=False,
+                        )
+                        embed.set_footer(text="Do _ip locate <ip> for more details")
+                        return embed
+                    else:
+                        embed = discord.Embed(
+                            title=f"This IP is a known TOR node",
+                            description=f"AbuseIPDB Report for {ip_address}",
+                            color=discord.Color.purple(),
+                        )
+                        embed.add_field(
+                            name="Number of total reports",
+                            value=data["data"]["totalReports"],
+                            inline=False,
+                        )
+                        embed.add_field(
+                            name=f"IP location",
+                            value=f"{data['data']['countryCode']}",
+                            inline=False,
+                        )
+                        embed.add_field(
+                            name=f"ISP", value=data["data"]["isp"], inline=False
+                        )
+                        embed.add_field(
+                            name=f"Abuse confidence score : {abuseScore}",
+                            value=f" `{loading_bar_str}`",
+                            inline=False,
+                        )
+                        return embed
                 else:
-                    embed = discord.Embed(
-                        title=f"This IP is a known TOR node",
-                        description=f"AbuseIPDB Report for {ip_address}",
-                        color=discord.Color.purple(),
+                    return discord.Embed(
+                        title=f"This IP is either for private networks or reserved",
+                        description="Please use a public IP or a domain name",
+                        color=discord.Color.dark_magenta(),
                     )
-                    embed.add_field(
-                        name="Number of total reports",
-                        value=data["data"]["totalReports"],
-                        inline=False,
-                    )
-                    embed.add_field(
-                        name=f"IP location",
-                        value=f"{data['data']['countryCode']}",
-                        inline=False,
-                    )
-                    embed.add_field(
-                        name=f"ISP", value=data["data"]["isp"], inline=False
-                    )
-                    embed.add_field(
-                        name=f"Abuse confidence score : {abuseScore}",
-                        value=f" `{loading_bar_str}`",
-                        inline=False,
-                    )
-                    return embed
             else:
                 return discord.Embed(
                     title=f"Error fetching data from AbuseIPDB",
