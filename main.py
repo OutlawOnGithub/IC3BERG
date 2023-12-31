@@ -141,6 +141,10 @@ def main():
     async def ip_locate(ctx, ip_address: str):
         await ctx.send(embed=ip_instance.locate(ctx, ip_address=ip_address))
 
+    @ip.command(name="rep")
+    async def reputation(ctx, ip_address: str):
+        await ctx.send(embed=ip_instance.reputation(ctx, ip_address=ip_address))
+
     @bot.command(name="help")
     async def help(ctx):
         await ctx.send(embed=meta_instance.help(ctx))
