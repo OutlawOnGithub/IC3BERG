@@ -193,7 +193,7 @@ class IP:
                 else:
                     return discord.Embed(
                         title=f"This IP is either for private networks or reserved",
-                        description="Please use a public IP or a domain name",
+                        description="Please use a public IP",
                         color=discord.Color.dark_magenta(),
                     )
             else:
@@ -204,7 +204,7 @@ class IP:
                 )
         else:
             return discord.Embed(
-                    title=f"Please provide a valid IPv4/6 adress",
+                    title=f"Please provide a valid IPv4/6 adress",  
                     color=discord.Color.dark_magenta(),
                 )
 
