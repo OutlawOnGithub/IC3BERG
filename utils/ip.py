@@ -68,7 +68,7 @@ class IP:
                         return discord.Embed(
                             title=f"Failed to fetch information for {ip_address}",
                             description="Please provide a valid IP and try again.",
-                            color=discord.Color.dark_red(),
+                            color=discord.Color.nitro_pink(),
                         )
                 elif data["message"] == "reserved range":
                     return discord.Embed(
