@@ -22,7 +22,6 @@ def main():
     )
 
     channel_name = "infosec"
-    fetching_status_per_server = {}
 
     rss_instance = RSS()
     tools_instance = Tools()
