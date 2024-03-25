@@ -54,9 +54,7 @@ class RSS:
     def status(self, ctx):  # defined in main
         pass
 
-    def add_feed(
-        self, ctx, feed_url=""
-    ):  # add url check and rss feed check (if they are)
+    def add_feed(self, ctx, feed_url=""):  # add url check and rss feed check (if they are)
         if feed_url:
             if len(self.feed_list) <= 100:
                 try:
@@ -106,8 +104,21 @@ class RSS:
 
         return embed
 
-    def del_feed(self, ctx):
-        pass
+    def del_feed(self, ctx, feed_url):
+        if any(d["url"] == feed_url for d in self.feed_list):
+            self.feed_list = [d for d in self.feed_list if d["url"] != feed_url]
+            return discord.Embed(
+                    title="Feed successfully removed",
+                    description=f"You are using {len(self.feed_list)} out of 100 feed slots",
+                    color=discord.Color.orange(),
+                )
+        else:
+            return discord.Embed(
+                    title="Feed url not found",
+                    description="Please provide the url of the feed you want to remove",
+                    color=discord.Color.orange(),
+                )
+
 
     def set_channel(self, ctx):
         pass
