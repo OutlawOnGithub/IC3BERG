@@ -45,9 +45,7 @@ def main():
                     embed = discord.Embed(
                         title=news_feed.entries[0]["title"],
                         url=news_feed.entries[0]["link"],
-                        description=news_feed.entries[0]["description"]
-                        .replace("<p>", "")
-                        .replace("</p>", ""),
+                        description=remove_html_tags(news_feed.entries[0]["description"]),
                         color=discord.Color.blue(),
                     )
                     if "author" in news_feed.entries[0]:
@@ -152,6 +150,10 @@ def main():
     @bot.command(name="info")
     async def info(ctx):
         await ctx.send(embed=meta_instance.info(ctx))
+
+    def remove_html_tags(text):
+        clean_text = re.sub(r'<[^>]+>', '', text)
+        return clean_text
 
     bot.run(TOKEN, log_level=logging.DEBUG)
 
