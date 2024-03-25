@@ -50,7 +50,8 @@ def main():
                         .replace("</p>", ""),
                         color=discord.Color.blue(),
                     )
-                    embed.set_author(name=news_feed.entries[0]["author"])
+                    if news_feed.entries[0]["author"]:
+                        embed.set_author(name=news_feed.entries[0]["author"])
                     current_time_gmt = datetime.now(timezone.utc)
                     formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
                     embed.set_footer(text=f"{formatted_time}")
