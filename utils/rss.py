@@ -6,7 +6,15 @@ from bs4 import BeautifulSoup
 
 class RSS:
     def __init__(self) -> None:
-        self.feed_list = ["https://www.darkreading.com/rss.xml", "https://www.cert.ssi.gouv.fr/feed/"]
+        self.feed_list = [{
+                        "url": "https://www.darkreading.com/rss.xml",
+                        "description": "Dark Reading | Security | Protect The Business",
+                        "already_fetched": False,
+                    },{
+                        "url": "https://www.cert.ssi.gouv.fr/feed/",
+                        "description": "CERT-FR / Centre gouvernemental de veille, d'alerte et de réponse aux attaques informatiques",
+                        "already_fetched": False,
+                    }]
 
     def default(self, ctx):
         embed = discord.Embed(
