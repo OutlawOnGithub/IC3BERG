@@ -9,11 +9,11 @@ class RSS:
         self.feed_list = [{
                         "url": "https://www.darkreading.com/rss.xml",
                         "description": "Dark Reading | Security | Protect The Business",
-                        "already_fetched": False,
+                        "latest_fetch": "False",
                     },{
                         "url": "https://www.cert.ssi.gouv.fr/feed/",
                         "description": "CERT-FR / Centre gouvernemental de veille, d'alerte et de réponse aux attaques informatiques",
-                        "already_fetched": False,
+                        "latest_fetch": "False",
                     }]
 
     def default(self, ctx):
@@ -67,7 +67,7 @@ class RSS:
                     new_feed_dict = {
                         "url": feed_url,
                         "description": desc,
-                        "already_fetched": False,
+                        "latest_fetch": "False",
                     }
                     self.feed_list.append(new_feed_dict)
                 except Exception as e:
