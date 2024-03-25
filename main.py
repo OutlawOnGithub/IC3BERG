@@ -15,7 +15,7 @@ def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     bot = commands.Bot(
-        command_prefix="_",
+        command_prefix="!",
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
         help_command=None,
@@ -32,16 +32,16 @@ def main():
     async def on_ready():
         print(f"We have logged in as {bot.user}")
 
-    @tasks.loop(minutes=20)
+    @tasks.loop(seconds=20)
     async def fetch_feeds():
         for feed in rss_instance.feed_list:
             feed_url = feed["url"]
-            already_fetched = feed["already_fetched"]
+            latest_fetch = feed["latest_fetch"]
 
-            if not already_fetched:
-                news_feed = feedparser.parse(feed_url)
+            news_feed = feedparser.parse(feed_url)
 
-                if news_feed.entries:
+            if news_feed.entries:
+                if latest_fetch != news_feed.entries[0]["link"]:
                     embed = discord.Embed(
                         title=news_feed.entries[0]["title"],
                         url=news_feed.entries[0]["link"],
@@ -63,7 +63,7 @@ def main():
                         if channel:
                             await channel.send(embed=embed)
 
-                    feed["already_fetched"] = True
+                    feed["latest_fetch"] = news_feed.entries[0]["link"]
 
     @bot.group()
     async def rss(ctx):
@@ -159,7 +159,7 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
 
-    bot.run(TOKEN, log_level=logging.DEBUG)
+    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_level=logging.DEBUG)
 
 
 if __name__ == "__main__":
