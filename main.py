@@ -109,6 +109,10 @@ def main():
     async def rss_list(ctx):
         await ctx.send(embed=rss_instance.list_feed(ctx))
 
+    @rss.command(name="del")
+    async def rss_del(ctx, feed_url):
+        await ctx.send(embed=rss_instance.del_feed(ctx, feed_url=feed_url))
+
     @bot.group(case_insensitive=True)
     async def tools(ctx):
         if ctx.invoked_subcommand is None:
