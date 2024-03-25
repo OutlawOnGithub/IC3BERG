@@ -15,7 +15,7 @@ def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     bot = commands.Bot(
-        command_prefix="!",
+        command_prefix="_",
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
         help_command=None,
@@ -32,7 +32,7 @@ def main():
     async def on_ready():
         print(f"We have logged in as {bot.user}")
 
-    @tasks.loop(seconds=20)
+    @tasks.loop(minutes=1)
     async def fetch_feeds():
         for feed in rss_instance.feed_list:
             feed_url = feed["url"]
@@ -159,7 +159,7 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
 
-    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_level=logging.DEBUG)
+    bot.run(TOKEN, log_level=logging.DEBUG)
 
 
 if __name__ == "__main__":
