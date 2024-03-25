@@ -28,12 +28,12 @@ class IP:
             if response.status_code == 200:
                 data = response.json()
 
-                embed = discord.Embed(
-                    title=f"IP Information for {ip_address}",
-                    color=discord.Color.dark_magenta(),
-                )
                 if data["status"] != "fail":
                     try:
+                        embed = discord.Embed(
+                            title=f"IP Information for {data['query']}",
+                            color=discord.Color.dark_magenta(),
+                        )
                         embed.add_field(
                             name="Country",
                             value=f"{data['country']} [{data['countryCode']}], {data['regionName']} {data['region']}",
