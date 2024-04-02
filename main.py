@@ -44,7 +44,7 @@ def main():
             if news_feed.entries:
                 if latest_fetch != news_feed.entries[0]["link"]:
                     # Use unescape to decode HTML entities
-                    decoded_description = unescape(news_feed.entries[0]["description"])
+                    decoded_description = unescape(remove_html_tags(news_feed.entries[0]["description"]))
                     embed = discord.Embed(
                         title=news_feed.entries[0]["title"],
                         url=news_feed.entries[0]["link"],
