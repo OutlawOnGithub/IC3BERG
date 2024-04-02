@@ -4,20 +4,32 @@ services:
   ic3berg:
     image: outlaw/ic3berg:latest
     container_name: ic3berg
+    restart: unless-stopped
     networks:
       - ic3berg
   
-  # database:
-  #   image: mariadb:lts-jammy
-  #   container_name: db
-  #   environment:
-  #     MARIADB_USER: outlaw
-  #     MARIADB_PASSWORD: <mariadb_password>
-  #     MARIADB_PASSWORD_ROOT: <mariadb_password>
-  #   volumes:
-  #     - /home/outlaw/IC3BERG/db:/var/lib/mysql
-  #   networks:
-  #     - ic3berg
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: iceberg
+      POSTGRES_DB: iceberg
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    volumes:
+      - /home/outlaw/IC3BERG/db/data:/var/lib/postgresql
+      - /home/outlaw/IC3BERG/db/init.db:/docker-entrypoint-initdb.d/init.db
+    networks:
+      - ic3berg
+  
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    ports:
+      - 9080:8080
+    networks:
+      - ic3berg
 
 networks:
   ic3berg:
