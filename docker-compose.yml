@@ -17,7 +17,7 @@ services:
       POSTGRES_DB: iceberg
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
     volumes:
-      - /home/outlaw/IC3BERG/db/data:/var/lib/postgresql
+      - /home/outlaw/IC3BERG/db/data:/var/lib/postgresql/data
       - /home/outlaw/IC3BERG/db/init.db:/docker-entrypoint-initdb.d/init.db
     networks:
       - ic3berg
