@@ -18,7 +18,7 @@ jobs:
     needs: Build-Image
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir /home/outlaw/IC3BERG/db/data
+      - run: mkdir -p /home/outlaw/IC3BERG/db/data
       - run: cp init.db /home/outlaw/IC3BERG/db/init.db
 
   Deploy-Premise:
