@@ -9,13 +9,14 @@ from utils.rss import *
 from utils.ip import *
 from utils.tools import *
 from utils.meta import *
+from html import unescape
 
 
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     bot = commands.Bot(
-        command_prefix="!",
+        command_prefix="_",
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
         help_command=None,
@@ -42,10 +43,12 @@ def main():
 
             if news_feed.entries:
                 if latest_fetch != news_feed.entries[0]["link"]:
+                    # Use unescape to decode HTML entities
+                    decoded_description = unescape(news_feed.entries[0]["description"])
                     embed = discord.Embed(
                         title=news_feed.entries[0]["title"],
                         url=news_feed.entries[0]["link"],
-                        description=remove_html_tags(news_feed.entries[0]["description"]),
+                        description=decoded_description,
                         color=discord.Color.blue(),
                     )
                     if "author" in news_feed.entries[0]:
@@ -159,7 +162,7 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
 
-    bot.run("MTE3NDQzNDQ3ODA2MDQ4MjYzMA.GXyZyO.2RnupRGumIWwBfvA7FPKQPMJ8lzkrfKxIS2xFQ", log_level=logging.DEBUG)
+    bot.run(TOKEN, log_level=logging.INFO)
 
 
 if __name__ == "__main__":
