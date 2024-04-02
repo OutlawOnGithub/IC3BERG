@@ -9,6 +9,7 @@ from utils.rss import *
 from utils.ip import *
 from utils.tools import *
 from utils.meta import *
+from html import unescape
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
     async def on_ready():
         print(f"We have logged in as {bot.user}")
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=20)
     async def fetch_feeds():
         for feed in rss_instance.feed_list:
             feed_url = feed["url"]
@@ -42,10 +43,12 @@ def main():
 
             if news_feed.entries:
                 if latest_fetch != news_feed.entries[0]["link"]:
+                    # Use unescape to decode HTML entities
+                    decoded_description = unescape(remove_html_tags(news_feed.entries[0]["description"]))
                     embed = discord.Embed(
                         title=news_feed.entries[0]["title"],
                         url=news_feed.entries[0]["link"],
-                        description=remove_html_tags(news_feed.entries[0]["description"]),
+                        description=decoded_description,
                         color=discord.Color.blue(),
                     )
                     if "author" in news_feed.entries[0]:
@@ -159,7 +162,7 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
 
-    bot.run(TOKEN, log_level=logging.DEBUG)
+    bot.run(TOKEN, log_level=logging.INFO)
 
 
 if __name__ == "__main__":
