@@ -1,15 +1,17 @@
-CREATE DATA IF NOT EXISTS iceberg;
+-- Create schema if not exists
+CREATE SCHEMA IF NOT EXISTS iceberg;
 
-USER iceberg;
-
-CREATE TABLE IF NOT EXISTS server (
-    guild_id INT PRIMARY KEY,
-    activate BOOL,
+-- Create server table
+CREATE TABLE IF NOT EXISTS iceberg.server (
+    guild_id BIGINT PRIMARY KEY,
+    enabled BOOLEAN,
+    rss_channel BIGINT
 );
 
-CREATE TABLE IF NOT EXISTS  rss (
-    guild_id INT,
-    url TEXT,
-    name TEXT,
-    addedBy TIMESTAMP
+-- Create rss table
+CREATE TABLE IF NOT EXISTS iceberg.rss (
+    url TEXT PRIMARY KEY,
+    last_fetched TEXT,
+    description TEXT,
+    guild_id BIGINT
 );
