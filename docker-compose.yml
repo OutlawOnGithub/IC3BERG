@@ -1,13 +1,4 @@
-# version: '3.9'
-
 services:
-  ic3berg:
-    image: outlaw/ic3berg:latest
-    container_name: ic3berg
-    restart: unless-stopped
-    networks:
-      - ic3berg
-  
   postgres:
     image: postgres
     container_name: postgres
@@ -16,6 +7,8 @@ services:
       POSTGRES_USER: iceberg
       POSTGRES_DB: iceberg
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    ports:
+      - 5432:5432
     volumes:
       - /home/outlaw/IC3BERG/db/data:/var/lib/postgresql/data
       - /home/outlaw/IC3BERG/db/init.db:/docker-entrypoint-initdb.d/init.db

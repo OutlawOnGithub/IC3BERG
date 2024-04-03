@@ -1,0 +1,15 @@
+# Project pipeline files
+.github
+.git*
+
+# Project Description 
+CHANGELOG
+LICENSE.md
+README.md
+
+# Docker files
+Dockerfile
+docker-compose.yml
+
+# SQL Injection
+init.sql
