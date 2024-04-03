@@ -163,16 +163,23 @@ def main():
     @bot.group(case_insensitive=True)
     async def hash(ctx):
         if ctx.invoked_subcommand is None:
-            await ctx.send(embed=hash_instance.default())
+            await ctx.send(embed=hash_instance.default(ctx))
 
     @hash.command(name="md5")
     async def md5(ctx, string):
         await ctx.send(embed=hash_instance.md5(ctx, string))
 
     @hash.command(name="sha1")
-    async def md5(ctx):
-        await ctx.send(embed=hash_instance.help)
+    async def sha1(ctx, string):
+        await ctx.send(embed=hash_instance.md5(ctx, string))
 
+    @hash.command(name="sha256")
+    async def sha256(ctx, string):
+        await ctx.send(embed=hash_instance.md5(ctx, string))
+
+    @hash.command(name="help")
+    async def help(ctx):
+        await ctx.send(embed=hash_instance.help(ctx))
 
     def remove_html_tags(text):
         clean_text = re.sub(r'<[^>]+>', '', text)

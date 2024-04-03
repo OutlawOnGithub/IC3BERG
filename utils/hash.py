@@ -1,6 +1,5 @@
 import discord
-import requests
-import re
+import hashlib
 
 
 class Hash:
@@ -29,16 +28,31 @@ class Hash:
     def help(self, ctx):
         embed = discord.Embed(
             title="Hash help",
-            # url="https://github.com/OutlawOnGithub",
-            color=discord.Color.blue(),
+            description="You can generate several different hashes of a given string",
+            color=discord.Color.red(),
         )
         return embed
     
     def md5(self, ctx, string):
         embed = discord.Embed(
             title=f"MD5 Hash of {string}",
-            description="voilivoilou",
-            # url="https://github.com/OutlawOnGithub",
-            color=discord.Color.blue(),
+            description=hashlib.md5(string.encode()).hexdigest(),
+            color=discord.Color.red(),
+        )
+        return embed
+    
+    def sha1(self, ctx, string):
+        embed = discord.Embed(
+            title=f"SHA1 Hash of {string}",
+            description=hashlib.sha1(string.encode()).hexdigest(),
+            color=discord.Color.red(),
+        )
+        return embed
+    
+    def sha256(self, ctx, string):
+        embed = discord.Embed(
+            title=f"SHA-256 Hash of {string}",
+            description=hashlib.sha256(string.encode()).hexdigest(),
+            color=discord.Color.red(),
         )
         return embed
