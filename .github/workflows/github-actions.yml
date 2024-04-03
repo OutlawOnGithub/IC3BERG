@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: mkdir -p /home/outlaw/IC3BERG/db/data
-      - run: cp init.db /home/outlaw/IC3BERG/db/init.db
+      - run: cp init.sql /home/outlaw/IC3BERG/db/init.sql
 
   Deploy-DB:
     runs-on: self-hosted
