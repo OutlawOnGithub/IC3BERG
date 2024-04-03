@@ -43,11 +43,11 @@ jobs:
         id: stop-burk
       - name: "Deploy IC3BURK"
         if: (github.ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
-        run: docker start --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
+        run: docker start --name "IC3BURK" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
         run: docker stop IC3BERG
         id: stop-berg
       - name: "Deploy IC3BERG"
         if: (github.ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
-        run: docker start --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} outlaw/ic3berg:latest
+        run: docker start --name "IC3BERG" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} outlaw/ic3berg:latest
