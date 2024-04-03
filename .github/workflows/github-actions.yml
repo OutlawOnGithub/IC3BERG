@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "Building dev image"
-        if: github.base_ref == 'dev'
+        if: github.base_ref == 'refs/heads/dev'
         run: docker build --no-cache -t outlaw/ic3burk:latest .
       - name: "Building prod image"
-        if: github.base_ref == 'main'
+        if: github.base_ref == 'refs/heads/main'
         run: docker build --no-cache -t outlaw/ic3berg:latest .
   
   Copy-dependencies:
@@ -38,16 +38,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "Stop IC3BURK bot"
-        if: github.base_ref == 'dev'
+        if: github.base_ref == 'refs/heads/dev'
         run: docker stop IC3BURK
         id: stop-burk
       - name: "Deploy IC3BURK"
-        if: (github.base_ref == 'dev') && (success() || steps.stop-burk.conclusion == 'failure')
+        if: (github.base_ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
         run: docker start --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
-        if: github.base_ref == 'main'
+        if: github.base_ref == 'refs/heads/main'
         run: docker stop IC3BERG
         id: stop-berg
       - name: "Deploy IC3BERG"
-        if: (github.base_ref == 'main') && (success() || steps.stop-berg.conclusion == 'failure')
+        if: (github.base_ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
         run: docker start --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} outlaw/ic3berg:latest
