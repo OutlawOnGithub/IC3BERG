@@ -39,6 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: "Stop IC3BURK bot"
         if: github.ref == 'refs/heads/dev'
+        continue-on-error: true
         run: docker stop IC3BURK
         id: stop-burk
       - name: "Deploy IC3BURK"
@@ -46,6 +47,7 @@ jobs:
         run: docker run --name "IC3BURK" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         run: docker stop IC3BERG
         id: stop-berg
       - name: "Deploy IC3BERG"
