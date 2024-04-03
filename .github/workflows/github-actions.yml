@@ -2,16 +2,20 @@ name: IC3BERG pipeline on tags
 on:
   push:
     branches:
+      - dev
       - main
 jobs:
   Build-Image:
     runs-on: self-hosted
+    if: 
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Building IC3BERG docker image as latest"
-      - run: docker build --no-cache --build-arg DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} -t outlaw/ic3berg:latest .
-      # - run: echo "Tag IC3BERG docker image using version ${{ github.head.ref }}"
-      # - run: docker tag outlaw/ic3berg:${{ github.head.ref }} .
+      - name: "Building dev image"
+        if: github.base_ref == 'dev'
+        run: docker build --no-cache -t outlaw/ic3burk:latest .
+      - name: "Building prod image"
+        if: github.base_ref == 'main'
+        run: docker build --no-cache -t outlaw/ic3berg:latest .
   
   Copy-dependencies:
     runs-on: self-hosted
@@ -21,10 +25,29 @@ jobs:
       - run: mkdir -p /home/outlaw/IC3BERG/db/data
       - run: cp init.db /home/outlaw/IC3BERG/db/init.db
 
-  Deploy-Premise:
+  Deploy-DB:
     runs-on: self-hosted
     needs: Copy-dependencies
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Restart IC3BERG container's stack"
-      - run: COMPOSE_STACK_NAME=IC3BERG POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} docker compose up -d
+      - run: COMPOSE_STACK_NAME=IC3BERG_DB POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} docker compose up -d
+  
+  Deploy-Bot:
+    runs-on: self-hosted
+    needs: Build-Image
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Stop IC3BURK bot"
+        if: github.base_ref == 'dev'
+        run: docker stop IC3BURK
+        id: stop-burk
+      - name: "Deploy IC3BURK"
+        if: (github.base_ref == 'dev') && (success() || steps.stop-burk.conclusion == 'failure')
+        run: docker start --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
+      - name: "Stop IC3BERG bot"
+        if: github.base_ref == 'main'
+        run: docker stop IC3BERG
+        id: stop-berg
+      - name: "Deploy IC3BERG"
+        if: (github.base_ref == 'main') && (success() || steps.stop-berg.conclusion == 'failure')
+        run: docker start --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} outlaw/ic3berg:latest
