@@ -40,7 +40,7 @@ jobs:
       - name: "Stop IC3BURK bot"
         if: github.ref == 'refs/heads/dev'
         continue-on-error: true
-        run: docker stop IC3BURK
+        run: docker stop IC3BURK && docker rm IC3BURK
         id: stop-burk
       - name: "Deploy IC3BURK"
         if: (github.ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
@@ -48,7 +48,7 @@ jobs:
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        run: docker stop IC3BERG
+        run: docker stop IC3BERG && docker rm IC3BERG
         id: stop-berg
       - name: "Deploy IC3BERG"
         if: (github.ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
