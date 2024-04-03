@@ -171,11 +171,11 @@ def main():
 
     @hash.command(name="sha1")
     async def sha1(ctx, string):
-        await ctx.send(embed=hash_instance.md5(ctx, string))
+        await ctx.send(embed=hash_instance.sha1(ctx, string))
 
     @hash.command(name="sha256")
     async def sha256(ctx, string):
-        await ctx.send(embed=hash_instance.md5(ctx, string))
+        await ctx.send(embed=hash_instance.sha256(ctx, string))
 
     @hash.command(name="help")
     async def help(ctx):
