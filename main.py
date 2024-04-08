@@ -11,16 +11,28 @@ from utils.tools import *
 from utils.meta import *
 from utils.hash import *
 from html import unescape
+import psycopg2
+
 
 
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
+    DB_PW = os.getenv("POSTGRES_PASSWORD")
 
     bot = commands.Bot(
         command_prefix="!",
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
         help_command=None,
+    )
+
+    # Connect to PostgreSQL
+    conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="9090"  # Default PostgreSQL port
     )
 
     channel_name = "infosec"
