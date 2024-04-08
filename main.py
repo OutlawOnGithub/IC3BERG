@@ -13,6 +13,7 @@ from html import unescape
 
 
 def main():
+    
     TOKEN = os.getenv("DISCORD_TOKEN")
 
     bot = commands.Bot(
