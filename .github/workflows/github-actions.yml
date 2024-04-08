@@ -39,15 +39,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: "Stop IC3BURK bot"
         if: github.ref == 'refs/heads/dev'
-        run: docker stop IC3BURK
+        continue-on-error: true
+        run: docker stop IC3BURK && docker rm IC3BURK
         id: stop-burk
       - name: "Deploy IC3BURK"
         if: (github.ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
-        run: docker run --name "IC3BURK" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} outlaw/ic3burk:latest
+        run: docker run --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} --restart unless-stopped --network ic3berg outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
-        run: docker stop IC3BERG
+        continue-on-error: true
+        run: docker stop IC3BERG && docker rm IC3BERG
         id: stop-berg
       - name: "Deploy IC3BERG"
         if: (github.ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
-        run: docker run --name "IC3BERG" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} outlaw/ic3berg:latest
+        run: docker run --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --restart unless-stopped --network ic3berg outlaw/ic3berg:latest
