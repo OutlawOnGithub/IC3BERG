@@ -12,7 +12,6 @@ from utils.meta import *
 from html import unescape
 
 
-
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
 
