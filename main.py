@@ -15,6 +15,7 @@ import psycopg2
 
 
 
+
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
     DB_PW = os.getenv("POSTGRES_PASSWORD")
