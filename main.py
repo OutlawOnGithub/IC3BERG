@@ -13,9 +13,8 @@ from html import unescape
 
 
 def main():
-    
     TOKEN = os.getenv("DISCORD_TOKEN")
-
+    
     bot = commands.Bot(
         command_prefix="_",
         intents=discord.Intents.all(),
