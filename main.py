@@ -9,30 +9,17 @@ from utils.rss import *
 from utils.ip import *
 from utils.tools import *
 from utils.meta import *
-from utils.hash import *
 from html import unescape
-import psycopg2
-
 
 
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
-    DB_PW = os.getenv("POSTGRES_PASSWORD")
 
     bot = commands.Bot(
-        command_prefix="!",
+        command_prefix="_",
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
         help_command=None,
-    )
-
-    # Connect to PostgreSQL
-    conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="9090"  # Default PostgreSQL port
     )
 
     channel_name = "infosec"
@@ -41,7 +28,6 @@ def main():
     tools_instance = Tools()
     ip_instance = IP()
     meta_instance = Meta()
-    hash_instance = Hash()
 
     @bot.event
     async def on_ready():
@@ -82,7 +68,7 @@ def main():
 
                     feed["latest_fetch"] = news_feed.entries[0]["link"]
 
-    @bot.group(case_insensitive = True)
+    @bot.group()
     async def rss(ctx):
         if ctx.invoked_subcommand is None:
             await ctx.send(embed=rss_instance.default(ctx))
@@ -126,7 +112,7 @@ def main():
     async def rss_list(ctx):
         await ctx.send(embed=rss_instance.list_feed(ctx))
 
-    @rss.command(name="del", aliases=['rm'])
+    @rss.command(name="del")
     async def rss_del(ctx, feed_url):
         await ctx.send(embed=rss_instance.del_feed(ctx, feed_url=feed_url))
 
@@ -171,27 +157,6 @@ def main():
     @bot.command(name="info")
     async def info(ctx):
         await ctx.send(embed=meta_instance.info(ctx))
-
-    @bot.group(case_insensitive=True)
-    async def hash(ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send(embed=hash_instance.default(ctx))
-
-    @hash.command(name="md5")
-    async def md5(ctx, string):
-        await ctx.send(embed=hash_instance.md5(ctx, string))
-
-    @hash.command(name="sha1")
-    async def sha1(ctx, string):
-        await ctx.send(embed=hash_instance.sha1(ctx, string))
-
-    @hash.command(name="sha256")
-    async def sha256(ctx, string):
-        await ctx.send(embed=hash_instance.sha256(ctx, string))
-
-    @hash.command(name="help")
-    async def help(ctx):
-        await ctx.send(embed=hash_instance.help(ctx))
 
     def remove_html_tags(text):
         clean_text = re.sub(r'<[^>]+>', '', text)
