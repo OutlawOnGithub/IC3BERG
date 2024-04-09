@@ -18,11 +18,12 @@ import psycopg2
 def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
     DB_PW = os.getenv("POSTGRES_PASSWORD")
+    PREFIX = os.getenv("PREFIX")
 
     bot = commands.Bot(
-        command_prefix="!",
+        command_prefix=PREFIX,
         intents=discord.Intents.all(),
-        activity=discord.Activity(type=discord.ActivityType.playing, name="_help"),
+        activity=discord.Activity(type=discord.ActivityType.playing, name=PREFIX+"help"),
         help_command=None,
     )
 
