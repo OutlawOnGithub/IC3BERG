@@ -44,7 +44,7 @@ jobs:
         id: stop-burk
       - name: "Deploy IC3BURK"
         if: (github.ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
-        run: docker run --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} -e BOT_PREFIX="!" --restart unless-stopped --network ic3berg outlaw/ic3burk:latest
+        run: docker run --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e BOT_PREFIX="!" --restart unless-stopped --network ic3berg outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
@@ -52,4 +52,4 @@ jobs:
         id: stop-berg
       - name: "Deploy IC3BERG"
         if: (github.ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
-        run: docker run --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} -e BOT_PREFIX="_" --restart unless-stopped --network ic3berg outlaw/ic3berg:latest
+        run: docker run --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e BOT_PREFIX="_" -e  --restart unless-stopped --network ic3berg outlaw/ic3berg:latest
