@@ -127,7 +127,7 @@ def main():
 
         cursor.execute(
             f"SELECT COUNT(*) FROM {SCHEME}.server WHERE guild_id = %s;",
-            (ctx.guild_id,)
+            (ctx.guild.id,)
         )
 
         # Commit the changes to the database
