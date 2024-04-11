@@ -13,7 +13,7 @@ from utils.hash import *
 from html import unescape
 import psycopg2
 
-def init_db():
+def init_db(bot, DB_PW, SCHEME):
         # Connect to PostgreSQL
         conn = psycopg2.connect(
         dbname="iceberg",
@@ -56,7 +56,7 @@ def main():
         help_command=None,
     )
 
-    init_db()
+    init_db(bot, DB_PW, SCHEME)
     
     channel_name = "infosec"
 
