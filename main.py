@@ -14,6 +14,7 @@ from html import unescape
 import psycopg2
 
 def init_db(bot, DB_PW, SCHEME):
+        print("trying to init db")
         # Connect to PostgreSQL
         conn = psycopg2.connect(
         dbname="iceberg",
@@ -31,12 +32,13 @@ def init_db(bot, DB_PW, SCHEME):
 
             # Insert guild_id and enabled status into the server table
             cursor.execute(
-                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
+                f"INSERT INTO {SCHEME}.server (guild_id, FALSE) VALUES (%s, %s);",
                 (guild_id, enabled)
             )
 
         # Commit the changes to the database
         conn.commit()
+        print("trying to init db")
         
         # Close cursor and connection
         cursor.close()
