@@ -13,7 +13,34 @@ from utils.hash import *
 from html import unescape
 import psycopg2
 
+def init_db():
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+        )
+        
+        cursor = conn.cursor()
 
+        for guild in bot.guilds:
+            guild_id = guild.id
+            enabled = False
+
+            # Insert guild_id and enabled status into the server table
+            cursor.execute(
+                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
+                (guild_id, enabled)
+            )
+
+        # Commit the changes to the database
+        conn.commit()
+        
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
 
 def main():
 
@@ -201,37 +228,6 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
     
-    def init_db():
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-        )
-        
-        cursor = conn.cursor()
-
-        for guild in bot.guilds:
-            guild_id = guild.id
-            enabled = False
-
-            # Insert guild_id and enabled status into the server table
-            cursor.execute(
-                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
-                (guild_id, enabled)
-            )
-
-        # Commit the changes to the database
-        conn.commit()
-        
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-
-
     bot.run(TOKEN, log_level=logging.INFO)
 
 
