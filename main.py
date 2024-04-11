@@ -19,6 +19,7 @@ def main():
     TOKEN = os.getenv("DISCORD_TOKEN")
     DB_PW = os.getenv("POSTGRES_PASSWORD")
     PREFIX = os.getenv("BOT_PREFIX")
+    SCHEME = os.getenv("SCHEME")
 
     bot = commands.Bot(
         command_prefix=PREFIX,
@@ -36,6 +37,8 @@ def main():
         port="5432"  # Default PostgreSQL port
     )
 
+    cursor = conn.cursor()
+    
     channel_name = "infosec"
 
     rss_instance = RSS()
@@ -82,6 +85,14 @@ def main():
                             await channel.send(embed=embed)
 
                     feed["latest_fetch"] = news_feed.entries[0]["link"]
+
+    @bot.command()
+    async def test(ctx):
+        server_query = f"SELECT * FROM {SCHEME}.server;"
+        cursor.execute(server_query)
+        server_records = cursor.fetchall()
+        await ctx.send(server_records)
+
 
     @bot.group(case_insensitive = True)
     async def rss(ctx):
