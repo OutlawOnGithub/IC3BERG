@@ -33,7 +33,7 @@ def main():
         user="iceberg",
         password=DB_PW,
         host="postgres",  # This is the name of the PostgreSQL container
-        port="9090"  # Default PostgreSQL port
+        port="5432"  # Default PostgreSQL port
     )
 
     channel_name = "infosec"
