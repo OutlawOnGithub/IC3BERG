@@ -113,7 +113,7 @@ def main():
 
 
     @bot.command()
-    def testEnroll(ctx):
+    async def testEnroll(ctx):
         # Connect to PostgreSQL
         conn = psycopg2.connect(
         dbname="iceberg",
@@ -134,9 +134,10 @@ def main():
         #conn.commit()
         count = cursor.fetchone()[0]
         # Close cursor and connection
-        ctx.send(count)
+        
         cursor.close()
         conn.close()
+        await ctx.send(count)
 
 
 
