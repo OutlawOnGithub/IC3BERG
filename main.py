@@ -107,10 +107,25 @@ def main():
 
     @bot.command()
     async def test(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+        )
+        
+        cursor = conn.cursor()
+
         server_query = f"SELECT * FROM {SCHEME}.server;"
         cursor.execute(server_query)
         server_records = cursor.fetchall()
         await ctx.send(server_records)
+        
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
 
 
     @bot.group(case_insensitive = True)
