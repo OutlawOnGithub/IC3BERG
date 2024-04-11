@@ -26,32 +26,22 @@ def main():
         intents=discord.Intents.all(),
         activity=discord.Activity(type=discord.ActivityType.playing, name=PREFIX+"help"),
         help_command=None,
-    )
-
-    # Connect to PostgreSQL
-    conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-    )
-
-    cursor = conn.cursor()
+    )   
     
     channel_name = "infosec"
 
-    for guild in bot.guilds:
-            guild_id = guild.id
-            enabled = False
-            print("trying to init db")
+    # for guild in bot.guilds:
+    #         guild_id = guild.id
+    #         enabled = False
+    #         print("trying to init db")
 
-            # Insert guild_id and enabled status into the server table
-            cursor.execute(
-                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
-                (guild_id, enabled)
-            )
-    print("inited db")
+    #         # Insert guild_id and enabled status into the server table
+    #         cursor.execute(
+    #             f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
+    #             (guild_id, enabled)
+    #         )
+
+    #print("inited db")
 
     rss_instance = RSS()
     tools_instance = Tools()
@@ -100,10 +90,54 @@ def main():
 
     @bot.command()
     async def test(ctx):
+
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
         server_query = f"SELECT * FROM {SCHEME}.server;"
         cursor.execute(server_query)
         server_records = cursor.fetchall()
         await ctx.send(server_records)
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+
+    @bot.command()
+    def testEnroll(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"SELECT COUNT(*) FROM {SCHEME}.server WHERE guild_id = %s;",
+            (ctx.guild_id,)
+        )
+
+        # Commit the changes to the database
+        #conn.commit()
+        count = cursor.fetchone()[0]
+        # Close cursor and connection
+        ctx.send(count)
+        cursor.close()
+        conn.close()
+
 
 
     @bot.group(case_insensitive = True)
