@@ -13,39 +13,9 @@ from utils.hash import *
 from html import unescape
 import psycopg2
 
-def init_db(bot, DB_PW, SCHEME):
-        print("trying to init db")
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-        )
-        
-        cursor = conn.cursor()
 
-        for guild in bot.guilds:
-            guild_id = guild.id
-            enabled = False
-
-            # Insert guild_id and enabled status into the server table
-            cursor.execute(
-                f"INSERT INTO {SCHEME}.server (guild_id, FALSE) VALUES (%s, %s);",
-                (guild_id, enabled)
-            )
-
-        # Commit the changes to the database
-        conn.commit()
-        print("trying to init db")
-        
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
 
 def main():
-
     TOKEN = os.getenv("DISCORD_TOKEN")
     DB_PW = os.getenv("POSTGRES_PASSWORD")
     PREFIX = os.getenv("BOT_PREFIX")
@@ -58,9 +28,30 @@ def main():
         help_command=None,
     )
 
-    init_db(bot, DB_PW, SCHEME)
+    # Connect to PostgreSQL
+    conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+    )
+
+    cursor = conn.cursor()
     
     channel_name = "infosec"
+
+    for guild in bot.guilds:
+            guild_id = guild.id
+            enabled = False
+            print("trying to init db")
+
+            # Insert guild_id and enabled status into the server table
+            cursor.execute(
+                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
+                (guild_id, enabled)
+            )
+    print("inited db")
 
     rss_instance = RSS()
     tools_instance = Tools()
@@ -109,25 +100,10 @@ def main():
 
     @bot.command()
     async def test(ctx):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-        )
-        
-        cursor = conn.cursor()
-
         server_query = f"SELECT * FROM {SCHEME}.server;"
         cursor.execute(server_query)
         server_records = cursor.fetchall()
         await ctx.send(server_records)
-        
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
 
 
     @bot.group(case_insensitive = True)
@@ -244,7 +220,7 @@ def main():
     def remove_html_tags(text):
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
-    
+
     bot.run(TOKEN, log_level=logging.INFO)
 
 
