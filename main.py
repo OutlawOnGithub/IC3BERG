@@ -160,15 +160,15 @@ def main():
         count = cursor.fetchone()[0]
 
         if count == 0:
-            # If the server ID doesn't exist, insert it into the database
+            # If the server ID doesn't exist, insert it into the database with "enabled" set to false
             cursor.execute(
-                f"INSERT INTO {SCHEME}.server (guild_id) VALUES (%s);",
+                f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, FALSE);",
                 (ctx.guild.id,)
             )
             conn.commit()
-            await ctx.send("Server enrolled successfully!")
+            await ctx.send("Server added successfully!")
         else:
-            await ctx.send("Server already enrolled!")
+            await ctx.send("Server already enrolled.")
 
         # Close cursor and connection
         cursor.close()
@@ -212,6 +212,34 @@ def main():
 
     @bot.command()
     async def showserv(ctx):
+    # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Retrieve all enrolled servers from the database with their "enabled" status
+        cursor.execute(f"SELECT guild_id, enabled FROM {SCHEME}.server;")
+        enrolled_servers = cursor.fetchall()
+
+        if enrolled_servers:
+            # If there are enrolled servers, format and send the list with "enabled" status
+            server_info = "\n".join([f"Server ID: {server[0]}, Enabled: {server[1]}" for server in enrolled_servers])
+            await ctx.send(f"Enrolled servers:\n{server_info}")
+        else:
+            await ctx.send("No servers enrolled.")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+    @bot.command()
+    async def rss_start(ctx):
         # Connect to PostgreSQL
         conn = psycopg2.connect(
             dbname="iceberg",
@@ -223,20 +251,43 @@ def main():
 
         cursor = conn.cursor()
 
-        # Retrieve all enrolled servers from the database
-        cursor.execute(f"SELECT guild_id FROM {SCHEME}.server;")
-        enrolled_servers = cursor.fetchall()
-
-        if enrolled_servers:
-            # If there are enrolled servers, format and send the list
-            enrolled_list = "\n".join([f"Server ID: {server[0]}" for server in enrolled_servers])
-            await ctx.send(f"Enrolled servers:\n{enrolled_list}")
-        else:
-            await ctx.send("No servers enrolled.")
+        # Update the "enabled" attribute to true for the current server (guild)
+        cursor.execute(
+            f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
+            (ctx.guild.id,)
+        )
+        conn.commit()
+        await ctx.send("RSS feed enabled for this server.")
 
         # Close cursor and connection
         cursor.close()
         conn.close()
+
+    @bot.command()
+    async def rss_stop(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Update the "enabled" attribute to false for the current server (guild)
+        cursor.execute(
+            f"UPDATE {SCHEME}.server SET enabled = FALSE WHERE guild_id = %s;",
+            (ctx.guild.id,)
+        )
+        conn.commit()
+        await ctx.send("RSS feed disabled for this server.")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
 
 
 
