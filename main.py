@@ -210,6 +210,35 @@ def main():
         cursor.close()
         conn.close()
 
+    @bot.command()
+    async def showserv(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Retrieve all enrolled servers from the database
+        cursor.execute(f"SELECT guild_id FROM {SCHEME}.server;")
+        enrolled_servers = cursor.fetchall()
+
+        if enrolled_servers:
+            # If there are enrolled servers, format and send the list
+            enrolled_list = "\n".join([f"Server ID: {server[0]}" for server in enrolled_servers])
+            await ctx.send(f"Enrolled servers:\n{enrolled_list}")
+        else:
+            await ctx.send("No servers enrolled.")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+
 
 
 
