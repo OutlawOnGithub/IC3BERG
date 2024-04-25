@@ -139,6 +139,78 @@ def main():
         conn.close()
         await ctx.send(count)
 
+    @bot.command()
+    async def addserv(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Check if the server ID already exists in the database
+        cursor.execute(
+            f"SELECT COUNT(*) FROM {SCHEME}.server WHERE guild_id = %s;",
+            (ctx.guild.id,)
+        )
+        count = cursor.fetchone()[0]
+
+        if count == 0:
+            # If the server ID doesn't exist, insert it into the database
+            cursor.execute(
+                f"INSERT INTO {SCHEME}.server (guild_id) VALUES (%s);",
+                (ctx.guild.id,)
+            )
+            conn.commit()
+            await ctx.send("Server enrolled successfully!")
+        else:
+            await ctx.send("Server already enrolled!")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+
+    @bot.command()
+    async def delserv(ctx):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Check if the server ID exists in the database
+        cursor.execute(
+            f"SELECT COUNT(*) FROM {SCHEME}.server WHERE guild_id = %s;",
+            (ctx.guild.id,)
+        )
+        count = cursor.fetchone()[0]
+
+        if count > 0:
+            # If the server ID exists, delete it from the database
+            cursor.execute(
+                f"DELETE FROM {SCHEME}.server WHERE guild_id = %s;",
+                (ctx.guild.id,)
+            )
+            conn.commit()
+            await ctx.send("Server removed successfully!")
+        else:
+            await ctx.send("Server ID not found in the database.")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+
 
 
     @bot.group(case_insensitive = True)
