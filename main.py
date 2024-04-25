@@ -460,6 +460,36 @@ def main():
         cursor.close()
         conn.close()
 
+    @bot.command()
+    async def delfeed(ctx, feed_url: str):
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Delete the feed from the database based on its URL and the guild ID of the current server
+        cursor.execute(
+            f"DELETE FROM {SCHEME}.rss WHERE url = %s AND guild_id = %s;",
+            (feed_url, ctx.guild.id)
+        )
+        conn.commit()
+
+        if cursor.rowcount > 0:
+            await ctx.send("Feed deleted successfully.")
+        else:
+            await ctx.send("No feed found with the provided URL.")
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+
 
     @bot.group(case_insensitive = True)
     async def rss(ctx):
