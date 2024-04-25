@@ -55,6 +55,32 @@ def main():
 
     @tasks.loop(seconds=20)
     async def fetch_feeds():
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Retrieve all servers where "enabled" is set to true
+        cursor.execute(f"SELECT guild_id FROM {SCHEME}.server WHERE enabled = TRUE;")
+        enabled_servers = cursor.fetchall()
+
+        if enabled_servers:
+            # If there are enabled servers, format and send the list
+            server_list = "\n".join([f"Server ID: {server[0]}" for server in enabled_servers])
+            #await ctx.send(f"Servers with RSS enabled:\n{server_list}")
+        else:
+            #await ctx.send("No servers found with RSS enabled.")
+            pass
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
         for feed in rss_instance.feed_list:
             feed_url = feed["url"]
             latest_fetch = feed["latest_fetch"]
@@ -159,7 +185,7 @@ def main():
         )
         count = cursor.fetchone()[0]
 
-        if count == 0:
+        if not count:
             # If the server ID doesn't exist, insert it into the database with "enabled" set to false
             cursor.execute(
                 f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, FALSE);",
@@ -195,7 +221,7 @@ def main():
         )
         count = cursor.fetchone()[0]
 
-        if count > 0:
+        if count:
             # If the server ID exists, delete it from the database
             cursor.execute(
                 f"DELETE FROM {SCHEME}.server WHERE guild_id = %s;",
@@ -251,17 +277,28 @@ def main():
 
         cursor = conn.cursor()
 
-        # Update the "enabled" attribute to true for the current server (guild)
+        # Check if there is a channel ID associated with the server ID
         cursor.execute(
-            f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
+            f"SELECT rss_channel FROM {SCHEME}.server WHERE guild_id = %s;",
             (ctx.guild.id,)
         )
-        conn.commit()
-        await ctx.send("RSS feed enabled for this server.")
+        channel_id = cursor.fetchone()
+
+        if channel_id and channel_id[0] is not None:
+            # If there is a channel ID associated with the server, enable the RSS feed
+            cursor.execute(
+                f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
+                (ctx.guild.id,)
+            )
+            conn.commit()
+            await ctx.send(f"RSS feed enabled for this server. channel_id = {channel_id}, channel_di[0] = {channel_id[0]}")
+        else:
+            await ctx.send("No RSS channel set. Please use !setchannel <channel_name> to set a channel.")
 
         # Close cursor and connection
         cursor.close()
         conn.close()
+
 
     @bot.command()
     async def rss_stop(ctx):
@@ -287,6 +324,38 @@ def main():
         # Close cursor and connection
         cursor.close()
         conn.close()
+
+    @bot.command()
+    async def setchannel(ctx, channel_name: str):
+        # Get the channel object from the channel name
+        channel = discord.utils.get(ctx.guild.channels, name=channel_name)
+        
+        if channel:
+            # Connect to PostgreSQL
+            conn = psycopg2.connect(
+                dbname="iceberg",
+                user="iceberg",
+                password=DB_PW,
+                host="postgres",  # This is the name of the PostgreSQL container
+                port="5432"  # Default PostgreSQL port
+            )
+
+            cursor = conn.cursor()
+
+            # Update the "rss_channel" attribute with the selected channel's ID for the current server (guild)
+            cursor.execute(
+                f"UPDATE {SCHEME}.server SET rss_channel = %s WHERE guild_id = %s;",
+                (channel.id, ctx.guild.id)
+            )
+            conn.commit()
+            await ctx.send(f"RSS channel set to '{channel_name}' for this server.")
+            
+            # Close cursor and connection
+            cursor.close()
+            conn.close()
+        else:
+            await ctx.send("Channel not found. Please provide a valid channel name.")
+
 
 
 
