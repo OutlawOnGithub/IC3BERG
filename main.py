@@ -520,12 +520,7 @@ def main():
 
     @rss.command(name="status")
     async def rss_status(ctx):
-        if fetch_feeds.is_running():
-            await ctx.send(
-                f"The bot is currently fetching RSS feed updates in this server."
-            )
-        else:
-            await ctx.send(f"The bot is not fetching RSS feed updates in this server.")
+        await ctx.send(embed=rss_instance.status(ctx, SCHEME, DB_PW))
 
     @rss.command(name="add")
     async def rss_add(ctx, feed_url=""):

@@ -2,6 +2,7 @@ import discord
 from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
+import psycopg2
 
 
 class RSS:
@@ -51,8 +52,50 @@ class RSS:
     def stop(self, ctx):  # defined in main
         pass
 
-    def status(self, ctx):  # defined in main
-        pass
+    def status(self, ctx, SCHEME, DB_PW):  # defined in main
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(
+        dbname="iceberg",
+        user="iceberg",
+        password=DB_PW,
+        host="postgres",  # This is the name of the PostgreSQL container
+        port="5432"  # Default PostgreSQL port
+        )
+
+        cursor = conn.cursor()
+
+        # Retrieve the "enabled" attribute for the current server (guild)
+        cursor.execute(
+            f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
+            (ctx.guild.id,)
+        )
+        enabled_status = cursor.fetchone()
+
+        # Close cursor and connection
+        cursor.close()
+        conn.close()
+
+        if enabled_status is not None:
+            if enabled_status[0]:
+                status_text = "Enabled"
+            else:
+                status_text = "Disabled"
+            # Create and send an embed with the status information
+            embed = discord.Embed(
+                title="RSS Feed Status",
+                description=f"Status: {status_text}",
+                color=discord.Color.orange()
+            )
+            return embed
+        else:
+            return discord.Embed(
+                    title="Server not enrolled yet",
+                    description=f"Please use _setchannel to add your server to the database",
+                    color=discord.Color.orange(),
+                )
+
+        
+
 
     def add_feed(self, ctx, feed_url=""):  # add url check and rss feed check (if they are)
         if feed_url:
