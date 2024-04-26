@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 import psycopg2
+import random
 
 
 class RSS:
@@ -46,55 +47,109 @@ class RSS:
 
         return embed
 
-    def start(self, ctx):  # defined in main
-        pass
+    def start(self, ctx, SCHEME, DB_PW):
+    # Connect to PostgreSQL
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Check if there is a channel ID associated with the server ID
+                cursor.execute(
+                    f"SELECT rss_channel FROM {SCHEME}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                channel_id = cursor.fetchone()
+
+                # Check if there are any feeds added for this server
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                nb_feeds = cursor.fetchone()[0]
+
+                if channel_id and channel_id[0] is not None:
+                    if nb_feeds > 0:
+                        cursor.execute(
+                            f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
+                            (ctx.guild.id,)
+                        )
+                        conn.commit()
+                        return discord.Embed(
+                            title="The bot has started fetching the added feeds",
+                            description=f"Number of feeds used: {nb_feeds}/100",
+                            color=discord.Color.orange()
+                        )
+                    else:
+                        return discord.Embed(
+                            title="Please add feeds",
+                            description="No feeds added for this server. Use _rss add <feed_url>",
+                            color=discord.Color.orange()
+                        )
+                else:
+                    return discord.Embed(
+                        title="Please set the RSS channel",
+                        description="Use _rss set <channel name>",
+                        color=discord.Color.orange()
+                    )
+
+
 
     def stop(self, ctx):  # defined in main
         pass
 
     def status(self, ctx, SCHEME, DB_PW):  # defined in main
         # Connect to PostgreSQL
-        conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Retrieve the "enabled" attribute for the current server (guild)
-        cursor.execute(
-            f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
-            (ctx.guild.id,)
-        )
-        enabled_status = cursor.fetchone()
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-        if enabled_status is not None:
-            if enabled_status[0]:
-                status_text = "Enabled"
-            else:
-                status_text = "Disabled"
-            # Create and send an embed with the status information
-            embed = discord.Embed(
-                title="RSS Feed Status",
-                description=f"Status: {status_text}",
-                color=discord.Color.orange()
-            )
-            return embed
-        else:
-            return discord.Embed(
-                    title="Server not enrolled yet",
-                    description=f"Please use _setchannel to add your server to the database",
-                    color=discord.Color.orange(),
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Retrieve the "enabled" attribute for the current server (guild)
+                cursor.execute(
+                    f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
                 )
+                enabled_status = cursor.fetchone()
 
-        
+                # Retrieve the number of feeds used for the current server (guild)
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                nb_feed = cursor.fetchone()[0]
+
+                if enabled_status is not None:
+                    if enabled_status[0]:
+                        return discord.Embed(
+                            title="The bot is currently fetching your feeds",
+                            description=f"Number of feeds being fetched : {nb_feed}",
+                            color=discord.Color.orange()
+                        )
+                    else:
+                        if random.random() < 0.01:
+                            return discord.Embed(
+                                title="The lazy bot is taking a nap",
+                                description=f"Wake him up by doing _rss start",
+                                color=discord.Color.orange()
+                            )
+                        else:
+                            return discord.Embed(
+                                title="The bot isn't fetching your feeds",
+                                color=discord.Color.orange()
+                            )
+                else:
+                    return discord.Embed(
+                        title="Server not enrolled yet",
+                        description=f"Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
 
 
     def add_feed(self, ctx, feed_url=""):  # add url check and rss feed check (if they are)
