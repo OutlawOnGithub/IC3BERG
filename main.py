@@ -399,7 +399,7 @@ def main():
 
     @rss.command(name="list")
     async def rss_list(ctx):
-        await ctx.send(embed=rss_instance.list_feed(ctx))
+        await ctx.send(embed=rss_instance.list_feed(ctx, SCHEME, DB_PW))
 
     @rss.command(name="del", aliases=['rm'])
     async def rss_del(ctx, feed_url):
