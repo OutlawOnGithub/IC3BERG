@@ -233,23 +233,25 @@ class RSS:
         ) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                f"SELECT url, description FROM {SCHEME}.rss WHERE guild_id = %s;",
-                (ctx.guild.id,)
-            )
-            feeds = cursor.fetchall()
+                    f"SELECT url, description FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                feeds = cursor.fetchall()
                 
-            embed = discord.Embed(
-            title="List of your RSS feeds", color=discord.Color.orange()
-            )
+        embed = discord.Embed(
+            title="List of your RSS feeds",
+            color=discord.Color.orange()
+        )
 
-            for feed in feeds:
-                embed.add_field(name=feed[2], value=feed[0], inline=False)
+        for feed in feeds:
+            embed.add_field(name=feed[1], value=feed[0], inline=False)
 
-            embed.set_footer(
-                text=f"You are using {len(self.feed_list)} out of 100 feed slots"
-            )
+        embed.set_footer(
+            text=f"You are using {len(feeds)} out of 100 feed slots"
+        )
 
-            return embed
+        return embed
+
         
     
         
