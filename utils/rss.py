@@ -252,24 +252,44 @@ class RSS:
 
         return embed
 
-        
-    
-        
 
-    def del_feed(self, ctx, feed_url):
-        if any(d["url"] == feed_url for d in self.feed_list):
-            self.feed_list = [d for d in self.feed_list if d["url"] != feed_url]
-            return discord.Embed(
-                    title="Feed successfully removed",
-                    description=f"You are using {len(self.feed_list)} out of 100 feed slots",
-                    color=discord.Color.orange(),
+    def del_feed(self, ctx, feed_url, SCHEME, DB_PW):
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Delete the feed from the database based on its URL and the guild ID of the current server
+                cursor.execute(
+                    f"DELETE FROM {SCHEME}.rss WHERE url = %s AND guild_id = %s;",
+                    (feed_url, ctx.guild.id)
                 )
-        else:
-            return discord.Embed(
-                    title="Feed url not found",
-                    description="Please provide the url of the feed you want to remove",
-                    color=discord.Color.orange(),
+                conn.commit()
+
+                # Determine the number of feeds used by the current server
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
                 )
+                feeds = cursor.fetchone()[0]
+
+                # Check if any rows were affected by the DELETE operation
+                if cursor.rowcount > 0:
+                    return discord.Embed(
+                        title="RSS feed successfully deleted",
+                        description=f"You are using {feeds} out of 100 feed slots",
+                        color=discord.Color.orange(),
+                    )
+                else:
+                    return discord.Embed(
+                        title="Feed URL not found",
+                        description="The provided URL does not match any existing feed",
+                        color=discord.Color.orange(),
+                    )
+
 
 
     def set_channel(self, ctx, channel_name: str, SCHEME, DB_PW):
