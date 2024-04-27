@@ -372,7 +372,6 @@ def main():
         conn.close()
 
 
-
     @bot.group(case_insensitive = True)
     async def rss(ctx):
         if ctx.invoked_subcommand is None:

@@ -222,19 +222,37 @@ class RSS:
                 title="You must add an url !", color=discord.Color.orange()
             )
 
-    def list_feed(self, ctx):
-        embed = discord.Embed(
+    def list_feed(self, ctx, SCHEME, DB_PW):
+        # Connect to PostgreSQL using a context manager
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                f"SELECT url, description FROM {SCHEME}.rss WHERE guild_id = %s;",
+                (ctx.guild.id,)
+            )
+            feeds = cursor.fetchall()
+                
+            embed = discord.Embed(
             title="List of your RSS feeds", color=discord.Color.orange()
-        )
+            )
 
-        for feed in self.feed_list:
-            embed.add_field(name=feed["description"], value=feed["url"], inline=False)
+            for feed in feeds:
+                embed.add_field(name=feed[2], value=feed[0], inline=False)
 
-        embed.set_footer(
-            text=f"You are using {len(self.feed_list)} out of 100 feed slots"
-        )
+            embed.set_footer(
+                text=f"You are using {len(self.feed_list)} out of 100 feed slots"
+            )
 
-        return embed
+            return embed
+        
+    
+        
 
     def del_feed(self, ctx, feed_url):
         if any(d["url"] == feed_url for d in self.feed_list):
