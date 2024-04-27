@@ -52,6 +52,7 @@ def main():
     @bot.event
     async def on_ready():
         print(f"We have logged in as {bot.user}")
+        fetch_feeds.start()
 
     @tasks.loop(seconds=20)
     async def fetch_feeds():
@@ -135,33 +136,6 @@ def main():
         cursor.close()
         conn.close()
 
-
-    @bot.command()
-    async def testEnroll(ctx):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-        dbname="iceberg",
-        user="iceberg",
-        password=DB_PW,
-        host="postgres",  # This is the name of the PostgreSQL container
-        port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        cursor.execute(
-            f"SELECT COUNT(*) FROM {SCHEME}.server WHERE guild_id = %s;",
-            (ctx.guild.id,)
-        )
-
-        # Commit the changes to the database
-        #conn.commit()
-        count = cursor.fetchone()[0]
-        # Close cursor and connection
-        
-        cursor.close()
-        conn.close()
-        await ctx.send(count)
 
     @bot.command()
     async def addserv(ctx):
@@ -261,98 +235,6 @@ def main():
         # Close cursor and connection
         cursor.close()
         conn.close()
-
-    @bot.command()
-    async def rss_start(ctx):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=DB_PW,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Check if there is a channel ID associated with the server ID
-        cursor.execute(
-            f"SELECT rss_channel FROM {SCHEME}.server WHERE guild_id = %s;",
-            (ctx.guild.id,)
-        )
-        channel_id = cursor.fetchone()
-
-        if channel_id and channel_id[0] is not None:
-            # If there is a channel ID associated with the server, enable the RSS feed
-            cursor.execute(
-                f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
-                (ctx.guild.id,)
-            )
-            conn.commit()
-            await ctx.send(f"RSS feed enabled for this server. channel_id = {channel_id}, channel_di[0] = {channel_id[0]}")
-        else:
-            await ctx.send("No RSS channel set. Please use !setchannel <channel_name> to set a channel.")
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-
-    @bot.command()
-    async def rss_stop(ctx):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=DB_PW,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Update the "enabled" attribute to false for the current server (guild)
-        cursor.execute(
-            f"UPDATE {SCHEME}.server SET enabled = FALSE WHERE guild_id = %s;",
-            (ctx.guild.id,)
-        )
-        conn.commit()
-        await ctx.send("RSS feed disabled for this server.")
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-    @bot.command()
-    async def setchannel(ctx, channel_name: str):
-        # Get the channel object from the channel name
-        channel = discord.utils.get(ctx.guild.channels, name=channel_name)
-        
-        if channel:
-            # Connect to PostgreSQL
-            conn = psycopg2.connect(
-                dbname="iceberg",
-                user="iceberg",
-                password=DB_PW,
-                host="postgres",  # This is the name of the PostgreSQL container
-                port="5432"  # Default PostgreSQL port
-            )
-
-            cursor = conn.cursor()
-
-            # Update the "rss_channel" attribute with the selected channel's ID for the current server (guild)
-            cursor.execute(
-                f"UPDATE {SCHEME}.server SET rss_channel = %s WHERE guild_id = %s;",
-                (channel.id, ctx.guild.id)
-            )
-            conn.commit()
-            await ctx.send(f"RSS channel set to '{channel_name}' for this server.")
-            
-            # Close cursor and connection
-            cursor.close()
-            conn.close()
-        else:
-            await ctx.send("Channel not found. Please provide a valid channel name.")
 
 
     @bot.command()
@@ -498,29 +380,19 @@ def main():
 
     @rss.command(name="start")
     async def rss_start(ctx):
-        if rss_instance.feed_list:
-            if not fetch_feeds.is_running():
-                fetch_feeds.start()
-                await ctx.send("RSS feed updates will now be fetched every 20 minutes.")
-            else:
-                await ctx.send("RSS feed updates are already being fetched.")
-        else:
-            await ctx.send(
-                "You must add a feed to fetch first ! Do `_rss add <feed_url>`"
-            )
+        await ctx.send(embed=rss_instance.start(ctx, SCHEME, DB_PW))
 
     @rss.command(name="stop")
     async def rss_stop(ctx):
-        if fetch_feeds.is_running():
-            fetch_feeds.cancel()
-            await ctx.send("RSS feed updates fetching has been stopped.")
-        else:
-            fetch_feeds.cancel()
-            await ctx.send("The bot is not currently fetching.")
+        await ctx.send(embed=rss_instance.stop(ctx, SCHEME, DB_PW))
 
     @rss.command(name="status")
     async def rss_status(ctx):
         await ctx.send(embed=rss_instance.status(ctx, SCHEME, DB_PW))
+
+    @rss.command(name="set", aliases=['setchannel'])
+    async def rss_setchannel(ctx, channel_name: str):
+        await ctx.send(embed=rss_instance.set_channel(ctx, channel_name, SCHEME, DB_PW))
 
     @rss.command(name="add")
     async def rss_add(ctx, feed_url=""):

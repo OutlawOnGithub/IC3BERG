@@ -48,7 +48,7 @@ class RSS:
         return embed
 
     def start(self, ctx, SCHEME, DB_PW):
-    # Connect to PostgreSQL
+        # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
@@ -98,8 +98,42 @@ class RSS:
 
 
 
-    def stop(self, ctx):  # defined in main
-        pass
+    def stop(self, ctx, SCHEME, DB_PW):  # defined in main
+        # Connect to PostgreSQL
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=DB_PW,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Check if the bot is currently fetching feeds for the server
+                cursor.execute(
+                    f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                status = cursor.fetchone()
+
+                if status is not None and status[0]:  # Check if the status is not None and is True
+                    # Update the "enabled" attribute to FALSE to stop fetching feeds
+                    cursor.execute(
+                        f"UPDATE {SCHEME}.server SET enabled = FALSE WHERE guild_id = %s;",
+                        (ctx.guild.id,)
+                    )
+                    conn.commit()
+                    return discord.Embed(
+                        title="The bot has stopped fetching your feeds",
+                        color=discord.Color.orange()
+                    )
+                else:
+                    return discord.Embed(
+                        title="The bot isn't fetching news",
+                        description="You can start the bot with _rss start",
+                        color=discord.Color.orange()
+                    )
+
+
 
     def status(self, ctx, SCHEME, DB_PW):  # defined in main
         # Connect to PostgreSQL
@@ -218,5 +252,34 @@ class RSS:
                 )
 
 
-    def set_channel(self, ctx):
-        pass
+    def set_channel(self, ctx, channel_name: str, SCHEME, DB_PW):
+        # Get the channel object from the channel name
+        channel = discord.utils.get(ctx.guild.channels, name=channel_name)
+        
+        if channel:
+            # Connect to PostgreSQL using a context manager
+            with psycopg2.connect(
+                dbname="iceberg",
+                user="iceberg",
+                password=DB_PW,
+                host="postgres",  # This is the name of the PostgreSQL container
+                port="5432"  # Default PostgreSQL port
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Update the "rss_channel" attribute with the selected channel's ID for the current server (guild)
+                    cursor.execute(
+                        f"UPDATE {SCHEME}.server SET rss_channel = %s WHERE guild_id = %s;",
+                        (channel.id, ctx.guild.id)
+                    )
+                    conn.commit()
+                    
+            return discord.Embed(
+                title="RSS channel successfully set up",
+                color=discord.Color.orange(),
+            )
+        else:
+            return discord.Embed(
+                title="Channel not found",
+                description="Please provide the name of a channel in your server",
+                color=discord.Color.orange(),
+            )
