@@ -269,53 +269,6 @@ def main():
         cursor.close()
         conn.close()
 
-    @bot.command()
-    async def activefeeds(ctx):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=DB_PW,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Fetch the enabled status for the current server (guild)
-        cursor.execute(
-            f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
-            (ctx.guild.id,)
-        )
-        enabled_status = cursor.fetchone()
-
-        if enabled_status and enabled_status[0] is True:
-            # If the RSS feed is enabled for the current server, fetch the feeds associated with it
-            cursor.execute(
-                f"SELECT url, last_fetched, description FROM {SCHEME}.rss WHERE guild_id = %s;",
-                (ctx.guild.id,)
-            )
-            feeds = cursor.fetchall()
-
-            if feeds:
-                # If there are feeds associated with the server, format and send them
-                feed_list = "```Enabled: True\n\n"
-                feed_list += "Feeds:\n"
-                feed_list += "URL                | Last Fetched     | Description\n"
-                feed_list += "-----------------------------------------\n"
-                for feed in feeds:
-                    feed_list += f"{feed[0]:<18} | {feed[1]:<16} | {feed[2]}\n"
-                feed_list += "```"
-                await ctx.send(feed_list)
-            else:
-                await ctx.send("No feeds found for this server.")
-        else:
-            await ctx.send("RSS feed is not enabled for this server.")
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
 
     @bot.command()
     async def addfeed(ctx, feed_url: str, *, description: str = ""):
