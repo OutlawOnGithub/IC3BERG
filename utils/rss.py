@@ -296,13 +296,6 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
-                # Determine the number of feeds used by the current server before deletion
-                cursor.execute(
-                    f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
-                    (ctx.guild.id,)
-                )
-                feeds_before = cursor.fetchone()[0]
-
                 # Delete the feed from the database based on its URL and the guild ID of the current server
                 cursor.execute(
                     f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s RETURNING *;",
@@ -316,13 +309,13 @@ class RSS:
                     f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
-                feeds_after = cursor.fetchone()[0]
+                feeds_nb = cursor.fetchone()[0]
 
                 # Check if the feed was successfully deleted
                 if deleted_feed is not None:
                     return discord.Embed(
                         title="RSS feed successfully deleted",
-                        description=f"You are using {feeds_after} out of 100 feed slots",
+                        description=f"You are using {feeds_nb} out of 100 feed slots",
                         color=discord.Color.orange(),
                     )
                 else:
