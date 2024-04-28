@@ -303,19 +303,19 @@ def main():
 
     @rss.command(name="start")
     async def rss_start(ctx):
-        await ctx.send(embed=rss_instance.start(ctx, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.start(ctx))
 
     @rss.command(name="stop")
     async def rss_stop(ctx):
-        await ctx.send(embed=rss_instance.stop(ctx, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.stop(ctx))
 
     @rss.command(name="status")
     async def rss_status(ctx):
-        await ctx.send(embed=rss_instance.status(ctx, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.status(ctx))
 
     @rss.command(name="set", aliases=['setchannel'])
     async def rss_setchannel(ctx, channel_name: str):
-        await ctx.send(embed=rss_instance.set_channel(ctx, channel_name, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.set_channel(ctx, channel_name))
 
     @rss.command(name="add")
     async def rss_add(ctx, feed_url=""):
@@ -323,11 +323,11 @@ def main():
 
     @rss.command(name="list")
     async def rss_list(ctx):
-        await ctx.send(embed=rss_instance.list_feed(ctx, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.list_feed(ctx))
 
     @rss.command(name="del", aliases=['rm', 'delete'])
     async def rss_del(ctx, feed_url):
-        await ctx.send(embed=rss_instance.del_feed(ctx, feed_url, SCHEME, DB_PW))
+        await ctx.send(embed=rss_instance.del_feed(ctx, feed_url))
 
     @bot.group(case_insensitive=True)
     async def tools(ctx):
