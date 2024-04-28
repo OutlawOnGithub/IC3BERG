@@ -296,25 +296,33 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
-                # Delete the feed from the database based on its URL and the guild ID of the current server
-                cursor.execute(
-                    f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s;",
-                    (feed_url, ctx.guild.id)
-                )
-                conn.commit()
-
-                # Determine the number of feeds used by the current server
+                # Determine the number of feeds used by the current server before deletion
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
-                feeds = cursor.fetchone()[0]
+                feeds_before = cursor.fetchone()[0]
 
-                # Check if any rows were affected by the DELETE operation
-                if cursor.rowcount > 0:
+                # Delete the feed from the database based on its URL and the guild ID of the current server
+                cursor.execute(
+                    f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s RETURNING *;",
+                    (feed_url, ctx.guild.id)
+                )
+                deleted_feed = cursor.fetchone()
+                conn.commit()
+
+                # Determine the number of feeds used by the current server after deletion
+                cursor.execute(
+                    f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                feeds_after = cursor.fetchone()[0]
+
+                # Check if the feed was successfully deleted
+                if deleted_feed is not None:
                     return discord.Embed(
                         title="RSS feed successfully deleted",
-                        description=f"You are using {feeds} out of 100 feed slots",
+                        description=f"You are using {feeds_after} out of 100 feed slots",
                         color=discord.Color.orange(),
                     )
                 else:
@@ -323,6 +331,7 @@ class RSS:
                         description="The provided URL does not match any existing feed",
                         color=discord.Color.orange(),
                     )
+
 
 
 
