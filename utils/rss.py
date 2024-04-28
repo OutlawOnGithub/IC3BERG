@@ -184,11 +184,12 @@ class RSS:
         if feed_url:
             # Check if the URL is valid
             parsed_url = urlparse(feed_url)
-            if not all([parsed_url.self.scheme, parsed_url.netloc]):
+            if not all([parsed_url.scheme, parsed_url.netloc]):
                 return discord.Embed(
                     title="You must add a valid URL!",
                     color=discord.Color.orange()
                 )
+
 
             # Connect to PostgreSQL using a single connector
             with psycopg2.connect(
