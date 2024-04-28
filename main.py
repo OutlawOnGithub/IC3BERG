@@ -62,7 +62,7 @@ def main():
 
             if rss_channel:
                 # Fetch the feeds associated with the server
-                cursor.execute(f"SELECT url, latest_fetch FROM {SCHEME}.rss WHERE guild_id = %s;", (server_id,))
+                cursor.execute(f"SELECT url, last_fetched FROM {SCHEME}.rss WHERE guild_id = %s;", (server_id,))
                 feeds = cursor.fetchall()
 
                 for feed_url, latest_fetch in feeds:
