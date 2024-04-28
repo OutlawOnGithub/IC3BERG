@@ -43,7 +43,7 @@ def main():
 
     #print("inited db")
 
-    rss_instance = RSS()
+    rss_instance = RSS(SCHEME, DB_PW)
     tools_instance = Tools()
     ip_instance = IP()
     meta_instance = Meta()
