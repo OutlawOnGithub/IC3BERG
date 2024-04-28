@@ -7,16 +7,10 @@ import random
 
 
 class RSS:
-    def __init__(self) -> None:
-        self.feed_list = [{
-                        "url": "https://www.darkreading.com/rss.xml",
-                        "description": "Dark Reading | Security | Protect The Business",
-                        "latest_fetch": "False",
-                    },{
-                        "url": "https://www.cert.ssi.gouv.fr/feed/",
-                        "description": "CERT-FR / Centre gouvernemental de veille, d'alerte et de réponse aux attaques informatiques",
-                        "latest_fetch": "False",
-                    }]
+    def __init__(self, SCHEME, DB_PW) -> None:
+        self.scheme = SCHEME
+        self.db_pw = DB_PW
+
 
     def default(self, ctx):
         embed = discord.Embed(
@@ -47,26 +41,26 @@ class RSS:
 
         return embed
 
-    def start(self, ctx, SCHEME, DB_PW):
+    def start(self, ctx):
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
-            password=DB_PW,
+            password=self.db_pw,
             host="postgres",  # This is the name of the PostgreSQL container
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
                 # Check if there is a channel ID associated with the server ID
                 cursor.execute(
-                    f"SELECT rss_channel FROM {SCHEME}.server WHERE guild_id = %s;",
+                    f"SELECT rss_channel FROM {self.scheme}.server WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 channel_id = cursor.fetchone()
 
                 # Check if there are any feeds added for this server
                 cursor.execute(
-                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 nb_feeds = cursor.fetchone()[0]
@@ -74,7 +68,7 @@ class RSS:
                 if channel_id and channel_id[0] is not None:
                     if nb_feeds > 0:
                         cursor.execute(
-                            f"UPDATE {SCHEME}.server SET enabled = TRUE WHERE guild_id = %s;",
+                            f"UPDATE {self.scheme}.server SET enabled = TRUE WHERE guild_id = %s;",
                             (ctx.guild.id,)
                         )
                         conn.commit()
@@ -98,19 +92,19 @@ class RSS:
 
 
 
-    def stop(self, ctx, SCHEME, DB_PW):  # defined in main
+    def stop(self, ctx):  # defined in main
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
-            password=DB_PW,
+            password=self.db_pw,
             host="postgres",  # This is the name of the PostgreSQL container
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
                 # Check if the bot is currently fetching feeds for the server
                 cursor.execute(
-                    f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
+                    f"SELECT enabled FROM {self.scheme}.server WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 status = cursor.fetchone()
@@ -118,7 +112,7 @@ class RSS:
                 if status is not None and status[0]:  # Check if the status is not None and is True
                     # Update the "enabled" attribute to FALSE to stop fetching feeds
                     cursor.execute(
-                        f"UPDATE {SCHEME}.server SET enabled = FALSE WHERE guild_id = %s;",
+                        f"UPDATE {self.scheme}.server SET enabled = FALSE WHERE guild_id = %s;",
                         (ctx.guild.id,)
                     )
                     conn.commit()
@@ -135,26 +129,26 @@ class RSS:
 
 
 
-    def status(self, ctx, SCHEME, DB_PW):  # defined in main
+    def status(self, ctx):  # defined in main
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
-            password=DB_PW,
+            password=self.db_pw,
             host="postgres",  # This is the name of the PostgreSQL container
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
                 # Retrieve the "enabled" attribute for the current server (guild)
                 cursor.execute(
-                    f"SELECT enabled FROM {SCHEME}.server WHERE guild_id = %s;",
+                    f"SELECT enabled FROM {self.scheme}.server WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 enabled_status = cursor.fetchone()
 
                 # Retrieve the number of feeds used for the current server (guild)
                 cursor.execute(
-                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 nb_feed = cursor.fetchone()[0]
@@ -186,54 +180,93 @@ class RSS:
                     )
 
 
-    def add_feed(self, ctx, feed_url=""):  # add url check and rss feed check (if they are)
+    def add_feed(self, ctx, feed_url=""):
         if feed_url:
-            if len(self.feed_list) <= 100:
-                try:
-                    desc = (
-                        BeautifulSoup(
-                            (requests.get("https://" + urlparse(feed_url).netloc).text),
-                            "html.parser",
-                        )
-                    ).title.string  # good luck understanding that
-                    new_feed_dict = {
-                        "url": feed_url,
-                        "description": desc,
-                        "latest_fetch": "False",
-                    }
-                    self.feed_list.append(new_feed_dict)
-                except Exception as e:
-                    return discord.Embed(
-                        title="You must add a valid url !", color=discord.Color.orange()
+            # Check if the URL is valid
+            parsed_url = urlparse(feed_url)
+            if not all([parsed_url.self.scheme, parsed_url.netloc]):
+                return discord.Embed(
+                    title="You must add a valid URL!",
+                    color=discord.Color.orange()
+                )
+
+            # Connect to PostgreSQL using a single connector
+            with psycopg2.connect(
+                dbname="iceberg",
+                user="iceberg",
+                password=self.db_pw,
+                host="postgres",  # This is the name of the PostgreSQL container
+                port="5432"  # Default PostgreSQL port
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Check if the URL is already present in the database for the current server
+                    cursor.execute(
+                        f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s;",
+                        (feed_url, ctx.guild.id)
                     )
-                return discord.Embed(
-                    title="You successfully added a new RSS feed !",
-                    description=feed_url,
-                    color=discord.Color.orange(),
-                )
-            else:
-                return discord.Embed(
-                    title="You can't add more than 100 feeds",
-                    description="Bro that's enough you're gonna make me lag",
-                    color=discord.Color.orange(),
-                )
+                    if cursor.fetchone()[0] > 0:
+                        return discord.Embed(
+                            title="This feed URL is already registered!",
+                            color=discord.Color.orange()
+                        )
+
+                    # Check if there are no more than 100 feeds registered for the server
+                    cursor.execute(
+                        f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
+                        (ctx.guild.id,)
+                    )
+                    num_feeds = cursor.fetchone()[0]
+                    if num_feeds >= 100:
+                        return discord.Embed(
+                            title="You can't add more than 100 feeds",
+                            description="Bro, that's enough. You're gonna make me lag!",
+                            color=discord.Color.orange()
+                        )
+
+                    # Fetch feed description using BeautifulSoup
+                    try:
+                        desc = BeautifulSoup(
+                            requests.get("https://" + parsed_url.netloc).text,
+                            "html.parser"
+                        ).title.string
+                    except Exception as e:
+                        return discord.Embed(
+                            title="Failed to fetch feed description!",
+                            description=str(e),
+                            color=discord.Color.orange()
+                        )
+
+                    # Insert the new feed into the database
+                    cursor.execute(
+                        f"INSERT INTO {self.scheme}.rss (url, description, guild_id) VALUES (%s, %s, %s);",
+                        (feed_url, desc, ctx.guild.id)
+                    )
+                    conn.commit()
+
+            return discord.Embed(
+                title="You successfully added a new RSS feed!",
+                description=feed_url,
+                color=discord.Color.orange()
+            )
         else:
             return discord.Embed(
-                title="You must add an url !", color=discord.Color.orange()
+                title="You must add a URL!",
+                color=discord.Color.orange()
             )
 
-    def list_feed(self, ctx, SCHEME, DB_PW):
+
+    def list_feed(self, ctx):
         # Connect to PostgreSQL using a context manager
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
-            password=DB_PW,
+            password=self.db_pw,
             host="postgres",  # This is the name of the PostgreSQL container
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f"SELECT url, description FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    f"SELECT url, description FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 feeds = cursor.fetchall()
@@ -253,25 +286,25 @@ class RSS:
         return embed
 
 
-    def del_feed(self, ctx, feed_url, SCHEME, DB_PW):
+    def del_feed(self, ctx, feed_url):
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
-            password=DB_PW,
+            password=self.db_pw,
             host="postgres",  # This is the name of the PostgreSQL container
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
                 # Delete the feed from the database based on its URL and the guild ID of the current server
                 cursor.execute(
-                    f"DELETE FROM {SCHEME}.rss WHERE url = %s AND guild_id = %s;",
+                    f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s;",
                     (feed_url, ctx.guild.id)
                 )
                 conn.commit()
 
                 # Determine the number of feeds used by the current server
                 cursor.execute(
-                    f"SELECT COUNT(*) FROM {SCHEME}.rss WHERE guild_id = %s;",
+                    f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 feeds = cursor.fetchone()[0]
@@ -292,7 +325,7 @@ class RSS:
 
 
 
-    def set_channel(self, ctx, channel_name: str, SCHEME, DB_PW):
+    def set_channel(self, ctx, channel_name: str):
         # Get the channel object from the channel name
         channel = discord.utils.get(ctx.guild.channels, name=channel_name)
         
@@ -301,14 +334,14 @@ class RSS:
             with psycopg2.connect(
                 dbname="iceberg",
                 user="iceberg",
-                password=DB_PW,
+                password=self.db_pw,
                 host="postgres",  # This is the name of the PostgreSQL container
                 port="5432"  # Default PostgreSQL port
             ) as conn:
                 with conn.cursor() as cursor:
                     # Update the "rss_channel" attribute with the selected channel's ID for the current server (guild)
                     cursor.execute(
-                        f"UPDATE {SCHEME}.server SET rss_channel = %s WHERE guild_id = %s;",
+                        f"UPDATE {self.scheme}.server SET rss_channel = %s WHERE guild_id = %s;",
                         (channel.id, ctx.guild.id)
                     )
                     conn.commit()
