@@ -27,21 +27,6 @@ def main():
         activity=discord.Activity(type=discord.ActivityType.playing, name=PREFIX+"help"),
         help_command=None,
     )   
-    
-    channel_name = "infosec"
-
-    # for guild in bot.guilds:
-    #         guild_id = guild.id
-    #         enabled = False
-    #         print("trying to init db")
-
-    #         # Insert guild_id and enabled status into the server table
-    #         cursor.execute(
-    #             f"INSERT INTO {SCHEME}.server (guild_id, enabled) VALUES (%s, %s);",
-    #             (guild_id, enabled)
-    #         )
-
-    #print("inited db")
 
     rss_instance = RSS(SCHEME, DB_PW)
     tools_instance = Tools()
@@ -67,51 +52,51 @@ def main():
 
         cursor = conn.cursor()
 
-        # Retrieve all servers where "enabled" is set to true
-        cursor.execute(f"SELECT guild_id FROM {SCHEME}.server WHERE enabled = TRUE;")
+        # Retrieve all servers where "enabled" is set to true and their corresponding RSS channel
+        cursor.execute(f"SELECT guild_id, rss_channel FROM {SCHEME}.server WHERE enabled = TRUE;")
         enabled_servers = cursor.fetchall()
 
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
+        for server_id, rss_channel_id in enabled_servers:
+            # Fetch the server's selected RSS channel
+            rss_channel = discord.utils.get(bot.get_guild(server_id).channels, id=rss_channel_id)
 
-        for server in enabled_servers:
-            #refetch all feeds
-            pass
+            if rss_channel:
+                # Fetch the feeds associated with the server
+                cursor.execute(f"SELECT url, latest_fetch FROM {SCHEME}.rss WHERE guild_id = %s;", (server_id,))
+                feeds = cursor.fetchall()
 
-        
-        for feed in rss_instance.feed_list:
-            feed_url = feed["url"]
-            latest_fetch = feed["latest_fetch"]
+                for feed_url, latest_fetch in feeds:
+                    # Parse the feed
+                    news_feed = feedparser.parse(feed_url)
 
-            news_feed = feedparser.parse(feed_url)
+                    if news_feed.entries:
+                        latest_link = news_feed.entries[0]["link"]
+                        # Check if the latest fetched link is different from the current latest link
+                        if latest_fetch != latest_link:
+                            # Use unescape to decode HTML entities
+                            decoded_description = unescape(remove_html_tags(news_feed.entries[0]["description"]))
+                            embed = discord.Embed(
+                                title=news_feed.entries[0]["title"],
+                                url=latest_link,
+                                description=decoded_description,
+                                color=discord.Color.blue(),
+                            )
+                            if "author" in news_feed.entries[0]:
+                                embed.set_author(name=news_feed.entries[0]["author"])
+                            current_time_gmt = datetime.now(timezone.utc)
+                            formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
+                            embed.set_footer(text=f"{formatted_time}")
 
-            if news_feed.entries:
-                if latest_fetch != news_feed.entries[0]["link"]:
-                    # Use unescape to decode HTML entities
-                    decoded_description = unescape(remove_html_tags(news_feed.entries[0]["description"]))
-                    embed = discord.Embed(
-                        title=news_feed.entries[0]["title"],
-                        url=news_feed.entries[0]["link"],
-                        description=decoded_description,
-                        color=discord.Color.blue(),
-                    )
-                    if "author" in news_feed.entries[0]:
-                        embed.set_author(name=news_feed.entries[0]["author"])
-                    current_time_gmt = datetime.now(timezone.utc)
-                    formatted_time = current_time_gmt.strftime("%H:%M:%S %d/%m/%Y %Z")
-                    embed.set_footer(text=f"{formatted_time}")
+                            # Send the embed to the RSS channel of the server
+                            await rss_channel.send(embed=embed)
 
-                    for guild in bot.guilds:
-                        channel = discord.utils.get(
-                            guild.channels,
-                            name=channel_name,
-                            type=discord.ChannelType.text,
-                        )
-                        if channel:
-                            await channel.send(embed=embed)
+                            # Update the latest fetched link in the database
+                            cursor.execute(
+                                f"UPDATE {SCHEME}.rss SET latest_fetch = %s WHERE url = %s AND guild_id = %s;",
+                                (latest_link, feed_url, server_id)
+                            )
+                            conn.commit()
 
-                    feed["latest_fetch"] = news_feed.entries[0]["link"]
 
     @bot.command()
     async def test(ctx):
@@ -208,34 +193,6 @@ def main():
         cursor.close()
         conn.close()
 
-    @bot.command()
-    async def showserv(ctx):
-    # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=DB_PW,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Retrieve all enrolled servers from the database with their "enabled" status
-        cursor.execute(f"SELECT guild_id, enabled FROM {SCHEME}.server;")
-        enrolled_servers = cursor.fetchall()
-
-        if enrolled_servers:
-            # If there are enrolled servers, format and send the list with "enabled" status
-            server_info = "\n".join([f"Server ID: {server[0]}, Enabled: {server[1]}" for server in enrolled_servers])
-            await ctx.send(f"Enrolled servers:\n{server_info}")
-        else:
-            await ctx.send("No servers enrolled.")
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
 
     @bot.command()
     async def showfeeds(ctx):
@@ -264,32 +221,6 @@ def main():
             await ctx.send("RSS Feeds:\n" + table_content)
         else:
             await ctx.send("No feeds found in the database.")
-
-        # Close cursor and connection
-        cursor.close()
-        conn.close()
-
-
-    @bot.command()
-    async def addfeed(ctx, feed_url: str, *, description: str = ""):
-        # Connect to PostgreSQL
-        conn = psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=DB_PW,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        )
-
-        cursor = conn.cursor()
-
-        # Insert the feed URL, last fetched (initialized to false), description, and guild ID into the database
-        cursor.execute(
-            f"INSERT INTO {SCHEME}.rss (url, last_fetched, description, guild_id) VALUES (%s, %s, %s, %s);",
-            (feed_url, False, description, ctx.guild.id)
-        )
-        conn.commit()
-        await ctx.send("Feed added successfully.")
 
         # Close cursor and connection
         cursor.close()
