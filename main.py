@@ -92,7 +92,7 @@ def main():
 
                             # Update the latest fetched link in the database
                             cursor.execute(
-                                f"UPDATE {SCHEME}.rss SET latest_fetch = %s WHERE url = %s AND guild_id = %s;",
+                                f"UPDATE {SCHEME}.rss SET last_fetched = %s WHERE url = %s AND guild_id = %s;",
                                 (latest_link, feed_url, server_id)
                             )
                             conn.commit()
