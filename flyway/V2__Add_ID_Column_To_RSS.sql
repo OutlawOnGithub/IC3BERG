@@ -1,0 +1,7 @@
+ALTER TABLE iceberg.rss DROP CONSTRAINT rss_pkey;
+ALTER TABLE iceberg.rss ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE iceberg.rss ADD CONSTRAINT unique_url UNIQUE (url);
+
+ALTER TABLE iceburk.rss DROP CONSTRAINT rss_pkey;
+ALTER TABLE iceburk.rss ADD COLUMN id SERIAL PRIMARY KEY;
+ALTER TABLE iceburk.rss ADD CONSTRAINT unique_url UNIQUE (url);
