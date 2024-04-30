@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: COMPOSE_STACK_NAME=IC3BERG_DB POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} docker compose up -d
-      - run: docker run -rm -v /home/outlaw/IC3BERG/db/flyway:/flyway/sql flyway/flyway -url=jdbc:postgresql://postgres:5432/iceberg -user=iceberg -password=${{ secrets.POSTGRES_PASSWORD }} migrate > flyway-migration.log
+      - run: docker run --rm -v /home/outlaw/IC3BERG/db/flyway:/flyway/sql flyway/flyway -url=jdbc:postgresql://postgres:5432/iceberg -user=iceberg -password=${{ secrets.POSTGRES_PASSWORD }} migrate > flyway-migration.log
       - name: Upload logs as an artifact
         uses: actions/upload-artifact@v3
         with:
