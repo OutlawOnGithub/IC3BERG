@@ -74,7 +74,7 @@ class RSS:
                         conn.commit()
                         return discord.Embed(
                             title="The bot has started fetching the added feeds",
-                            description=f"Number of feeds used: {nb_feeds}/100",
+                            description=f"Number of feeds used: {nb_feeds}/25",
                             color=discord.Color.orange()
                         )
                     else:
@@ -210,15 +210,15 @@ class RSS:
                             color=discord.Color.orange()
                         )
 
-                    # Check if there are no more than 100 feeds registered for the server
+                    # Check if there are no more than 25 feeds registered for the server
                     cursor.execute(
                         f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
                         (ctx.guild.id,)
                     )
                     num_feeds = cursor.fetchone()[0]
-                    if num_feeds >= 3:
+                    if num_feeds >= 25:
                         return discord.Embed(
-                            title="You can't add more than 100 feeds",
+                            title="You can't add more than 25 feeds",
                             description="Bro, that's enough. You're gonna make me lag!",
                             color=discord.Color.orange()
                         )
@@ -231,8 +231,8 @@ class RSS:
                         ).title.string
                     except Exception as e:
                         return discord.Embed(
-                            title="Failed to fetch feed description!",
-                            description=str(e),
+                            title="Failed to fetch feed description !",
+                            description=f"{feed_url} doesn't exist :/",
                             color=discord.Color.orange()
                         )
 
@@ -280,7 +280,7 @@ class RSS:
             embed.add_field(name=feed[1], value=feed[0], inline=False)
 
         embed.set_footer(
-            text=f"You are using {len(feeds)} out of 100 feed slots"
+            text=f"You are using {len(feeds)} out of 25 feed slots"
         )
 
         return embed
@@ -314,7 +314,7 @@ class RSS:
                 if deleted_feed is not None:
                     return discord.Embed(
                         title="RSS feed successfully deleted",
-                        description=f"You are using {feeds_nb} out of 100 feed slots",
+                        description=f"You are using {feeds_nb} out of 25 feed slots",
                         color=discord.Color.orange(),
                     )
                 else:
