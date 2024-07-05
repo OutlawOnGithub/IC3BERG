@@ -205,7 +205,7 @@ class RSS:
                         f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s;",
                         (feed_url, ctx.guild.id)
                     )
-                    if cursor.fetchone()[0] > 0:
+                    if cursor.fetchone()[0]:
                         return discord.Embed(
                             title="This feed URL is already registered!",
                             color=discord.Color.orange()
