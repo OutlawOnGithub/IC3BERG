@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import psycopg2
 import random
+from time import sleep
 
 
 class RSS:
@@ -302,7 +303,7 @@ class RSS:
                 )
                 deleted_feed = cursor.fetchone()
                 conn.commit()
-
+                sleep(0.5)
                 # Determine the number of feeds used by the current server after deletion
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
