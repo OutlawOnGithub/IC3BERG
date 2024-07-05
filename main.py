@@ -281,6 +281,14 @@ def main():
     async def training(ctx):
         await ctx.send(embed=tools_instance.training(ctx))
 
+    @tools.command(name="piracy")
+    async def training(ctx):
+        await ctx.send(embed=tools_instance.piracy(ctx))
+
+    @tools.command(name="webdev")
+    async def training(ctx):
+        await ctx.send(embed=tools_instance.webdev(ctx))
+
     @bot.group(case_insensitive=True)
     async def ip(ctx):
         if ctx.invoked_subcommand is None:
