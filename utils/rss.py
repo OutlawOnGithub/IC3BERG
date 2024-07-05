@@ -73,7 +73,7 @@ class RSS:
                         )
                         conn.commit()
                         return discord.Embed(
-                            title="The bot has started fetching the added feeds",
+                            title="The bot has started fetching your feeds",
                             description=f"Number of feeds used: {nb_feeds}/25",
                             color=discord.Color.orange()
                         )
