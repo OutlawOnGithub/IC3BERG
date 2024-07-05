@@ -128,3 +128,17 @@ class Tools:
         embed.set_footer(text="To help extend the list, DM `ox6cfc1ab7`")
 
         return embed
+    
+    def webdev(self, ctx):
+        embed = discord.Embed(
+            title="The websites NOT TO visit (illegal)",
+            color=discord.Color.blurple(),
+        )
+        embed.add_field(
+            name="For a quick and easy blogstyle website",
+            value="[Astro](https://astro.build/)",
+            inline=False,
+        )
+        embed.set_footer(text="To help extend the list, DM `ox6cfc1ab7`")
+
+        return embed
