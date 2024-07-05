@@ -91,7 +91,6 @@ class RSS:
                     )
 
 
-
     def stop(self, ctx):  # defined in main
         # Connect to PostgreSQL
         with psycopg2.connect(
