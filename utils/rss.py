@@ -216,7 +216,7 @@ class RSS:
                         (ctx.guild.id,)
                     )
                     num_feeds = cursor.fetchone()[0]
-                    if num_feeds >= 100:
+                    if num_feeds >= 3:
                         return discord.Embed(
                             title="You can't add more than 100 feeds",
                             description="Bro, that's enough. You're gonna make me lag!",
