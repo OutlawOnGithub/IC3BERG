@@ -303,7 +303,7 @@ class RSS:
                 )
                 deleted_feed = cursor.fetchone()
                 conn.commit()
-                sleep(0.5)
+                sleep(0.2)
                 # Determine the number of feeds used by the current server after deletion
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
