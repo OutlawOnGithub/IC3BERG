@@ -43,7 +43,7 @@ class RSS:
         return embed
 
     def start(self, ctx):
-        # Connect to PostgreSQL
+    # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
@@ -76,11 +76,21 @@ class RSS:
 
                     if channel_id and channel_id[0] is not None:
                         if nb_feeds > 0:
+                            # Set the bot as enabled for this server
                             cursor.execute(
                                 f"UPDATE {self.scheme}.server SET enabled = TRUE WHERE guild_id = %s;",
                                 (ctx.guild.id,)
                             )
+
+                            # Set 'last_fetched' to NULL for all feeds associated with this guild
+                            cursor.execute(
+                                f"UPDATE {self.scheme}.rss SET last_fetched = NULL WHERE guild_id = %s;",
+                                (ctx.guild.id,)
+                            )
+
+                            # Commit the transaction to apply both updates
                             conn.commit()
+
                             return discord.Embed(
                                 title="The bot has started fetching your feeds",
                                 description=f"Number of feeds used: {nb_feeds}/25",
@@ -104,6 +114,7 @@ class RSS:
                         description="You can stop the bot with _rss stop",
                         color=discord.Color.orange()
                     )
+
 
 
     def stop(self, ctx):  # defined in main
