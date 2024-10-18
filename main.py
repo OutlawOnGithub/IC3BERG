@@ -39,7 +39,7 @@ def main():
         print(f"We have logged in as {bot.user}")
         fetch_feeds.start()
 
-    @tasks.loop(seconds=20)
+    @tasks.loop(seconds=30)
     async def fetch_feeds():
         # Connect to PostgreSQL
         conn = psycopg2.connect(
