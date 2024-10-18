@@ -43,6 +43,7 @@ class RSS:
         return embed
 
     def start(self, ctx):
+        print("feed fetching has been started")
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
@@ -93,6 +94,7 @@ class RSS:
 
 
     def stop(self, ctx):  # defined in main
+        print("feed fetching has been stopped")
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
@@ -130,6 +132,7 @@ class RSS:
 
 
     def status(self, ctx):  # defined in main
+        print("feed status has been requested")
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
@@ -181,6 +184,7 @@ class RSS:
 
 
     def add_feed(self, ctx, feed_url=""):
+        print("feed has been added :"+ feed_url)
         if feed_url:
             # Check if the URL is valid
             parsed_url = urlparse(feed_url)
@@ -257,6 +261,7 @@ class RSS:
 
 
     def list_feed(self, ctx):
+        print("feed list has been requested")
         # Connect to PostgreSQL using a context manager
         with psycopg2.connect(
             dbname="iceberg",
@@ -288,6 +293,7 @@ class RSS:
 
 
     def del_feed(self, ctx, feed_url):
+        print("feed has been deleted :"+ feed_url)
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
@@ -329,6 +335,7 @@ class RSS:
 
 
     def set_channel(self, ctx, channel_name: str):
+        print("channel has been set :"+ channel_name)
         # Get the channel object from the channel name
         channel = discord.utils.get(ctx.guild.channels, name=channel_name)
         
