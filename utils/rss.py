@@ -100,7 +100,7 @@ class RSS:
                         )
                 else:
                     return discord.Embed(
-                        title="The bot isn already fetching news",
+                        title="The bot is already fetching news",
                         description="You can stop the bot with _rss stop",
                         color=discord.Color.orange()
                     )
