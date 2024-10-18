@@ -55,11 +55,11 @@ def main():
         # Retrieve all servers where "enabled" is set to true and their corresponding RSS channel
         cursor.execute(f"SELECT guild_id, rss_channel FROM {SCHEME}.server WHERE enabled = TRUE;")
         enabled_servers = cursor.fetchall()
-        print(enabled_servers)
+        await rss_channel.send(enabled_servers)
 
         for server_id, rss_channel_id in enabled_servers:
-            print(server_id)
-            print(rss_channel_id)
+            # print(server_id)
+            # print(rss_channel_id)
             # Fetch the server's selected RSS channel
             rss_channel = discord.utils.get(bot.get_guild(server_id).channels, id=rss_channel_id)
 
