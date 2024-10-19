@@ -63,7 +63,7 @@ class RSS:
                     # If the server is not registered, insert it with default values
                     cursor.execute(
                         f"INSERT INTO {self.scheme}.server (guild_id, enabled, rss_channel) VALUES (%s, %s, %s);",
-                        (ctx.guild.id, True, None)  #adds the server to the DB and sets it on
+                        (ctx.guild.id, False, None)  #adds the server to the DB and sets it off by default
                     )
                     conn.commit()  # Commit the insertion
                     # Optionally notify the user that the server was registered
