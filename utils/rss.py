@@ -52,6 +52,27 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
+                # Check if the current server (guild) is registered in the "server" table
+                cursor.execute(
+                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                server_exists = cursor.fetchone()
+
+                if server_exists is None:
+                    # If the server is not registered, insert it with default values
+                    cursor.execute(
+                        f"INSERT INTO {self.scheme}.server (guild_id, enabled, rss_channel) VALUES (%s, %s, %s);",
+                        (ctx.guild.id, True, None)  #adds the server to the DB and sets it on
+                    )
+                    conn.commit()  # Commit the insertion
+                    # Optionally notify the user that the server was registered
+                    return discord.Embed(
+                        title="Server registered",
+                        description="The server has been successfully registered in the database.",
+                        color=discord.Color.green()
+                    )
+
                 # Check if the bot is currently fetching feeds for the server
                 cursor.execute(
                     f"SELECT enabled FROM {self.scheme}.server WHERE guild_id = %s;",
@@ -114,6 +135,7 @@ class RSS:
                         description="You can stop the bot with _rss stop",
                         color=discord.Color.orange()
                     )
+
 
 
 
