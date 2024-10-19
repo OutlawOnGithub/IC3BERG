@@ -232,6 +232,10 @@ def main():
         if ctx.invoked_subcommand is None:
             await ctx.send(embed=rss_instance.default(ctx))
 
+    @rss.command(name="register")
+    async def rss_start(ctx):
+        await ctx.send(embed=rss_instance.register(ctx))
+
     @rss.command(name="start")
     async def rss_start(ctx):
         await ctx.send(embed=rss_instance.start(ctx))
