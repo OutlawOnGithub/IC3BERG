@@ -407,7 +407,7 @@ class RSS:
     def set_channel(self, ctx, channel_name: str):
         # Get the channel object from the channel name
         channel = discord.utils.get(ctx.guild.channels, name=channel_name)
-        
+
         if channel:
             # Connect to PostgreSQL using a context manager
             with psycopg2.connect(
@@ -418,13 +418,29 @@ class RSS:
                 port="5432"  # Default PostgreSQL port
             ) as conn:
                 with conn.cursor() as cursor:
-                    # Update the "rss_channel" attribute with the selected channel's ID for the current server (guild)
+                    # Check if the server is already registered in the "server" table
                     cursor.execute(
-                        f"UPDATE {self.scheme}.server SET rss_channel = %s WHERE guild_id = %s;",
-                        (channel.id, ctx.guild.id)
+                        f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                        (ctx.guild.id,)
                     )
+                    server_exists = cursor.fetchone()
+
+                    if server_exists is None:
+                        # If the server is not registered, insert it and set the rss_channel at the same time
+                        cursor.execute(
+                            f"INSERT INTO {self.scheme}.server (guild_id, enabled, rss_channel) VALUES (%s, %s, %s);",
+                            (ctx.guild.id, False, channel.id)  # Default: enabled = False, rss_channel = channel.id
+                        )
+                    else:
+                        # If the server is already registered, just update the rss_channel
+                        cursor.execute(
+                            f"UPDATE {self.scheme}.server SET rss_channel = %s WHERE guild_id = %s;",
+                            (channel.id, ctx.guild.id)
+                        )
+
+                    # Commit the changes (either insert or update)
                     conn.commit()
-                    
+
             return discord.Embed(
                 title="RSS channel successfully set up",
                 color=discord.Color.orange(),
@@ -435,3 +451,4 @@ class RSS:
                 description="Please provide the name of a channel in your server",
                 color=discord.Color.orange(),
             )
+
