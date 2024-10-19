@@ -256,7 +256,7 @@ def main():
     async def rss_list(ctx):
         await ctx.send(embed=rss_instance.list_feed(ctx))
 
-    @rss.command(name="del", aliases=['rm', 'delete'])
+    @rss.command(name="del", aliases=['rm', 'remove', 'delete'])
     async def rss_del(ctx, feed_url):
         await ctx.send(embed=rss_instance.del_feed(ctx, feed_url))
 
