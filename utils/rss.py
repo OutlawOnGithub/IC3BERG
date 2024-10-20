@@ -326,59 +326,8 @@ class RSS:
                 title="You must add a URL!",
                 color=discord.Color.orange()
             )
-
-
-
-    def list_feed(self, ctx):
-        # Connect to PostgreSQL using a context manager
-        with psycopg2.connect(
-            dbname="iceberg",
-            user="iceberg",
-            password=self.db_pw,
-            host="postgres",  # This is the name of the PostgreSQL container
-            port="5432"  # Default PostgreSQL port
-        ) as conn:
-            with conn.cursor() as cursor:
-                # Check if the server is registered in the "server" table
-                cursor.execute(
-                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
-                    (ctx.guild.id,)
-                )
-                server_exists = cursor.fetchone()
-
-                if server_exists is None:
-                    # If the server is not registered, return an embed message
-                    return discord.Embed(
-                        title="Server not registered yet",
-                        description=f"Please use _rss setchannel to add your server to the database",
-                        color=discord.Color.orange(),
-                    )
-
-                # Fetch the list of feeds for the current server
-                cursor.execute(
-                    f"SELECT url, description FROM {self.scheme}.rss WHERE guild_id = %s;",
-                    (ctx.guild.id,)
-                )
-                feeds = cursor.fetchall()
-
-        # Prepare the embed message with the list of feeds
-        embed = discord.Embed(
-            title="List of your RSS feeds",
-            color=discord.Color.orange()
-        )
-
-        for feed in feeds:
-            embed.add_field(name=feed[1], value=feed[0], inline=False)
-
-        embed.set_footer(
-            text=f"You are using {len(feeds)} out of 25 feed slots"
-        )
-
-        return embed
-
-
-
-    def del_feed(self, ctx, feed_url):
+        
+    def del_feed(self, ctx, feed_url=""):
         with psycopg2.connect(
             dbname="iceberg",
             user="iceberg",
@@ -434,6 +383,54 @@ class RSS:
                         color=discord.Color.orange(),
                     )
 
+
+
+    def list_feed(self, ctx):
+        # Connect to PostgreSQL using a context manager
+        with psycopg2.connect(
+            dbname="iceberg",
+            user="iceberg",
+            password=self.db_pw,
+            host="postgres",  # This is the name of the PostgreSQL container
+            port="5432"  # Default PostgreSQL port
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Check if the server is registered in the "server" table
+                cursor.execute(
+                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                server_exists = cursor.fetchone()
+
+                if server_exists is None:
+                    # If the server is not registered, return an embed message
+                    return discord.Embed(
+                        title="Server not registered yet",
+                        description=f"Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
+
+                # Fetch the list of feeds for the current server
+                cursor.execute(
+                    f"SELECT url, description FROM {self.scheme}.rss WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                feeds = cursor.fetchall()
+
+        # Prepare the embed message with the list of feeds
+        embed = discord.Embed(
+            title="List of your RSS feeds",
+            color=discord.Color.orange()
+        )
+
+        for feed in feeds:
+            embed.add_field(name=feed[1], value=feed[0], inline=False)
+
+        embed.set_footer(
+            text=f"You are using {len(feeds)} out of 25 feed slots"
+        )
+
+        return embed
 
 
 
