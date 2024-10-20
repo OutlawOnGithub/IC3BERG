@@ -336,60 +336,66 @@ class RSS:
                     title="You must add a valid URL!",
                     color=discord.Color.orange()
                 )
-                with psycopg2.connect(
-                    dbname="iceberg",
-                    user="iceberg",
-                    password=self.db_pw,
-                    host="postgres",  # This is the name of the PostgreSQL container
-                    port="5432"  # Default PostgreSQL port
-                ) as conn:
-                    with conn.cursor() as cursor:
-                        # Check if the server is registered in the "server" table
-                        cursor.execute(
-                            f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
-                            (ctx.guild.id,)
+            with psycopg2.connect(
+                dbname="iceberg",
+                user="iceberg",
+                password=self.db_pw,
+                host="postgres",  # This is the name of the PostgreSQL container
+                port="5432"  # Default PostgreSQL port
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Check if the server is registered in the "server" table
+                    cursor.execute(
+                        f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                        (ctx.guild.id,)
+                    )
+                    server_exists = cursor.fetchone()
+
+                    if server_exists is None:
+                        # If the server is not registered, return the specified embed message
+                        return discord.Embed(
+                            title="Server not registered yet",
+                            description="Please use _rss setchannel to add your server to the database",
+                            color=discord.Color.orange(),
                         )
-                        server_exists = cursor.fetchone()
 
-                        if server_exists is None:
-                            # If the server is not registered, return the specified embed message
-                            return discord.Embed(
-                                title="Server not registered yet",
-                                description="Please use _rss setchannel to add your server to the database",
-                                color=discord.Color.orange(),
-                            )
+                    # Attempt to delete the feed based on its URL and the guild ID of the current server
+                    cursor.execute(
+                        f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s RETURNING *;",
+                        (feed_url, ctx.guild.id)
+                    )
+                    deleted_feed = cursor.fetchone()
+                    conn.commit()
 
-                        # Attempt to delete the feed based on its URL and the guild ID of the current server
-                        cursor.execute(
-                            f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s RETURNING *;",
-                            (feed_url, ctx.guild.id)
+                    # Pause briefly to ensure the deletion is committed
+                    sleep(0.2)
+
+                    # Determine the number of feeds used by the current server after deletion
+                    cursor.execute(
+                        f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
+                        (ctx.guild.id,)
+                    )
+                    feeds_nb = cursor.fetchone()[0]
+
+                    # Check if the feed was successfully deleted
+                    if deleted_feed is not None:
+                        return discord.Embed(
+                            title="RSS feed successfully deleted",
+                            description=f"You are using {feeds_nb} out of 25 feed slots",
+                            color=discord.Color.orange(),
                         )
-                        deleted_feed = cursor.fetchone()
-                        conn.commit()
-
-                        # Pause briefly to ensure the deletion is committed
-                        sleep(0.2)
-
-                        # Determine the number of feeds used by the current server after deletion
-                        cursor.execute(
-                            f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
-                            (ctx.guild.id,)
+                    else:
+                        return discord.Embed(
+                            title="Feed URL not found",
+                            description="The provided URL does not match any existing feed",
+                            color=discord.Color.orange(),
                         )
-                        feeds_nb = cursor.fetchone()[0]
-
-                        # Check if the feed was successfully deleted
-                        if deleted_feed is not None:
-                            return discord.Embed(
-                                title="RSS feed successfully deleted",
-                                description=f"You are using {feeds_nb} out of 25 feed slots",
-                                color=discord.Color.orange(),
-                            )
-                        else:
-                            return discord.Embed(
-                                title="Feed URL not found",
-                                description="The provided URL does not match any existing feed",
-                                color=discord.Color.orange(),
-                            )
+        else:
+            return discord.Embed(
+                title="You must add a URL!",
+                color=discord.Color.orange()
+            )
+        
 
 
 
