@@ -42,7 +42,7 @@ class RSS:
 
         return embed
     
-    
+
 
     def start(self, ctx):
     # Connect to PostgreSQL
@@ -134,7 +134,7 @@ class RSS:
 
 
 
-    def stop(self, ctx):  # defined in main
+    def stop(self, ctx):
         # Connect to PostgreSQL
         with psycopg2.connect(
             dbname="iceberg",
@@ -144,6 +144,21 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
+                # Check if the server is registered in the "server" table
+                cursor.execute(
+                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                server_exists = cursor.fetchone()
+
+                if server_exists is None:
+                    # If the server is not registered, return the specified embed message
+                    return discord.Embed(
+                        title="Server not registered yet",
+                        description="Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
+
                 # Check if the bot is currently fetching feeds for the server
                 cursor.execute(
                     f"SELECT enabled FROM {self.scheme}.server WHERE guild_id = %s;",
@@ -151,7 +166,7 @@ class RSS:
                 )
                 status = cursor.fetchone()
 
-                if status is not None and status[0]:  # Check if the status is not None and is True (running)
+                if status is not None and status[0]:  # Check if the bot is currently running (enabled = TRUE)
                     # Update the "enabled" attribute to FALSE to stop fetching feeds
                     cursor.execute(
                         f"UPDATE {self.scheme}.server SET enabled = FALSE WHERE guild_id = %s;",
@@ -168,6 +183,7 @@ class RSS:
                         description="You can start the bot with _rss start",
                         color=discord.Color.orange()
                     )
+
 
 
 
@@ -241,6 +257,21 @@ class RSS:
                 port="5432"  # Default PostgreSQL port
             ) as conn:
                 with conn.cursor() as cursor:
+                    # Check if the server is registered in the "server" table
+                    cursor.execute(
+                        f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                        (ctx.guild.id,)
+                    )
+                    server_exists = cursor.fetchone()
+
+                    if server_exists is None:
+                        # If the server is not registered, return an embed message
+                        return discord.Embed(
+                        title="Server not registered yet",
+                        description=f"Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
+
                     # Check if the URL is already present in the database for the current server
                     cursor.execute(
                         f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s;",
@@ -273,7 +304,7 @@ class RSS:
                         ).title.string
                     except Exception as e:
                         return discord.Embed(
-                            title="Failed to fetch feed description !",
+                            title="Failed to fetch feed description!",
                             description=f"{feed_url} doesn't exist :/",
                             color=discord.Color.orange()
                         )
@@ -297,6 +328,7 @@ class RSS:
             )
 
 
+
     def list_feed(self, ctx):
         # Connect to PostgreSQL using a context manager
         with psycopg2.connect(
@@ -307,12 +339,29 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
+                # Check if the server is registered in the "server" table
+                cursor.execute(
+                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                server_exists = cursor.fetchone()
+
+                if server_exists is None:
+                    # If the server is not registered, return an embed message
+                    return discord.Embed(
+                        title="Server not registered yet",
+                        description=f"Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
+
+                # Fetch the list of feeds for the current server
                 cursor.execute(
                     f"SELECT url, description FROM {self.scheme}.rss WHERE guild_id = %s;",
                     (ctx.guild.id,)
                 )
                 feeds = cursor.fetchall()
-                
+
+        # Prepare the embed message with the list of feeds
         embed = discord.Embed(
             title="List of your RSS feeds",
             color=discord.Color.orange()
@@ -328,6 +377,7 @@ class RSS:
         return embed
 
 
+
     def del_feed(self, ctx, feed_url):
         with psycopg2.connect(
             dbname="iceberg",
@@ -337,14 +387,32 @@ class RSS:
             port="5432"  # Default PostgreSQL port
         ) as conn:
             with conn.cursor() as cursor:
-                # Delete the feed from the database based on its URL and the guild ID of the current server
+                # Check if the server is registered in the "server" table
+                cursor.execute(
+                    f"SELECT guild_id FROM {self.scheme}.server WHERE guild_id = %s;",
+                    (ctx.guild.id,)
+                )
+                server_exists = cursor.fetchone()
+
+                if server_exists is None:
+                    # If the server is not registered, return the specified embed message
+                    return discord.Embed(
+                        title="Server not registered yet",
+                        description="Please use _rss setchannel to add your server to the database",
+                        color=discord.Color.orange(),
+                    )
+
+                # Attempt to delete the feed based on its URL and the guild ID of the current server
                 cursor.execute(
                     f"DELETE FROM {self.scheme}.rss WHERE url = %s AND guild_id = %s RETURNING *;",
                     (feed_url, ctx.guild.id)
                 )
                 deleted_feed = cursor.fetchone()
                 conn.commit()
+
+                # Pause briefly to ensure the deletion is committed
                 sleep(0.2)
+
                 # Determine the number of feeds used by the current server after deletion
                 cursor.execute(
                     f"SELECT COUNT(*) FROM {self.scheme}.rss WHERE guild_id = %s;",
@@ -365,6 +433,7 @@ class RSS:
                         description="The provided URL does not match any existing feed",
                         color=discord.Color.orange(),
                     )
+
 
 
 
