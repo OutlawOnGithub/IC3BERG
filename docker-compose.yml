@@ -11,7 +11,6 @@ services:
       - 5432:5432
     volumes:
       - /home/outlaw/IC3BERG/db/data:/var/lib/postgresql/data
-      - /home/outlaw/IC3BERG/db/init.db:/docker-entrypoint-initdb.d/init.db
     networks:
       - ic3berg
   
@@ -20,7 +19,7 @@ services:
     container_name: adminer
     restart: unless-stopped
     ports:
-      - 9080:8080
+      - 9090:8080
     networks:
       - ic3berg
 

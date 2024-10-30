@@ -23,7 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: mkdir -p /home/outlaw/IC3BERG/db/data
-      - run: cp init.sql /home/outlaw/IC3BERG/db/init.sql
+      - run: mkdir -p /home/outlaw/IC3BERG/db/flyway
+      - run: cp -r flyway /home/outlaw/IC3BERG/db/flyway
 
   Deploy-DB:
     runs-on: self-hosted
@@ -31,7 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: COMPOSE_STACK_NAME=IC3BERG_DB POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} docker compose up -d
-  
+      - run: docker run --rm --network ic3berg -v /home/outlaw/IC3BERG/db/flyway:/flyway/sql flyway/flyway -baselineOnMigrate=true -url=jdbc:postgresql://postgres:5432/iceberg -user=iceberg -password=${{ secrets.POSTGRES_PASSWORD }} migrate > flyway-migration.log
+      - name: Upload logs as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: flyway-logs
+          path: flyway-migration.log
   Deploy-Bot:
     runs-on: self-hosted
     needs: Build-Image
@@ -44,7 +50,7 @@ jobs:
         id: stop-burk
       - name: "Deploy IC3BURK"
         if: (github.ref == 'refs/heads/dev') && (success() || steps.stop-burk.conclusion == 'failure')
-        run: docker run --name "IC3BURK" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} --restart unless-stopped outlaw/ic3burk:latest
+        run: docker run --name IC3BURK -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN_DEV }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e BOT_PREFIX="!" -e SCHEME="iceburk" --restart unless-stopped --network ic3berg outlaw/ic3burk:latest
       - name: "Stop IC3BERG bot"
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
@@ -52,4 +58,5 @@ jobs:
         id: stop-berg
       - name: "Deploy IC3BERG"
         if: (github.ref == 'refs/heads/main') && (success() || steps.stop-berg.conclusion == 'failure')
-        run: docker run --name "IC3BERG" -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} --restart unless-stopped outlaw/ic3berg:latest
+        run: docker run --name IC3BERG -d -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} -e POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} -e BOT_PREFIX="_" -e SCHEME="iceberg" --restart unless-stopped --network ic3berg outlaw/ic3berg:latest
+
