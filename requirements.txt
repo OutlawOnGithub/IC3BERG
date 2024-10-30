@@ -6,3 +6,4 @@ asyncio
 datetime
 beautifulsoup4
 psycopg2-binary
+
