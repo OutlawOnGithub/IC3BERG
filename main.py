@@ -209,7 +209,7 @@ def main():
         clean_text = re.sub(r'<[^>]+>', '', text)
         return clean_text
 
-    bot.run(TOKEN, log_level=logging.INFO)
+    bot.run(TOKEN, log_level=logging.ERROR)
 
 
 if __name__ == "__main__":
