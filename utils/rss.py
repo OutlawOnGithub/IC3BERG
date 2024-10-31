@@ -64,7 +64,7 @@ class RSS:
                 if server_exists is None:
                     return discord.Embed(
                         title="Server not registered yet",
-                        description=f"Please use _rss setchannel to add your server to the database",
+                        description=f"Please use _rss set <channel_name> to add your server to the database",
                         color=discord.Color.orange(),
                     )
 
