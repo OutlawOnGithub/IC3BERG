@@ -34,7 +34,7 @@ jobs:
       - run: COMPOSE_STACK_NAME=IC3BERG_DB POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} docker compose up -d
       - run: docker run --rm --network ic3berg -v /home/outlaw/IC3BERG/db/flyway:/flyway/sql flyway/flyway -baselineOnMigrate=true -url=jdbc:postgresql://postgres:5432/iceberg -user=iceberg -password=${{ secrets.POSTGRES_PASSWORD }} migrate > flyway-migration.log
       - name: Upload logs as an artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: flyway-logs
           path: flyway-migration.log
